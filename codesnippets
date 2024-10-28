@@ -1,0 +1,26 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public class Program
+{
+    public class Item
+    {
+        public int A { get; set; }
+        public int B { get; set; }
+    }
+    
+    public static void Main()
+    {
+        var list1 = new List<Item> { new Item { A = 1 }, new Item { A = 2 }, new Item { A = 3 } };
+        var list2 = new List<Item> { new Item { B = 2 }, new Item { B = 3 }, new Item { B = 4 } };
+
+        var distinctAttributes = list1
+            .Where(item1 => list2.Any(item2 => item1.A == item2.B))
+            .Select(item => item.A)
+            .Distinct()
+            .ToList();
+
+        Console.WriteLine("Distinct attributes: " + string.Join(", ", distinctAttributes));
+    }
+}
