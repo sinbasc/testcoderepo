@@ -24,3 +24,33 @@ public class Program
         Console.WriteLine("Distinct attributes: " + string.Join(", ", distinctAttributes));
     }
 }
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public class Program
+{
+    public class Item
+    {
+        public int A { get; set; }
+        public int B { get; set; }
+    }
+    
+    public static void Main()
+    {
+        var list1 = new List<Item> { new Item { A = 1 }, new Item { A = 2 }, new Item { A = 3 } };
+        var list2 = new List<Item> { new Item { B = 2 }, new Item { B = 3 }, new Item { B = 4 } };
+
+        var matchingObjects = from item1 in list1
+                              join item2 in list2 on item1.A equals item2.B
+                              select new { Item1 = item1, Item2 = item2 };
+
+        foreach (var match in matchingObjects)
+        {
+            Console.WriteLine($"List1 Item A: {match.Item1.A}, List2 Item B: {match.Item2.B}");
+        }
+    }
+}
+
+
