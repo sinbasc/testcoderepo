@@ -204,3 +204,53 @@ public class Program
     }
 }
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public class Program
+{
+    public class Item
+    {
+        public int Id { get; set; }
+        public int A { get; set; }
+        public int B { get; set; }
+    }
+
+    public static void Main()
+    {
+        var list1 = new List<Item> 
+        { 
+            new Item { Id = 1, A = 10, B = 20 }, 
+            new Item { Id = 2, A = 30, B = 40 },
+            new Item { Id = 3, A = 50, B = 60 } 
+        };
+        var list2 = new List<Item> 
+        { 
+            new Item { Id = 1, A = 10, B = 20 }, 
+            new Item { Id = 2, A = 30, B = 40 },
+            new Item { Id = 3, A = 50, B = 60 } 
+        };
+        var list3 = new List<Item> 
+        { 
+            new Item { Id = 1, A = 10, B = 20 }, 
+            new Item { Id = 2, A = 30, B = 40 },
+            new Item { Id = 3, A = 50, B = 60 } 
+        };
+
+        var finalList = (
+            from item1 in list1
+            from item2 in list2
+            where item1.Id == item2.Id
+            let firstMatch = list3.FirstOrDefault(item3 => item2.A == item3.B)
+            where firstMatch != null
+            select new { Item2 = item2, Item3 = firstMatch }
+        ).Distinct()
+        .ToList();
+
+        foreach (var result in finalList)
+        {
+            Console.WriteLine($"List2 Item ID: {result.Item2.Id}, List3 Item B: {result.Item3.B}");
+        }
+    }
+}
