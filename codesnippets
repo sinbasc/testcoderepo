@@ -160,4 +160,47 @@ public class Program
     }
 }
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public class Program
+{
+    public class Item
+    {
+        public int A { get; set; }
+        public int B { get; set; }
+        public int C { get; set; }
+        public int D { get; set; }
+    }
+
+    public static void Main()
+    {
+        var list1 = new List<Item> { new Item { A = 1, C = 5 }, new Item { A = 2, C = 6 }, new Item { A = 3, C = 7 } };
+        var list2 = new List<Item> { new Item { B = 2 }, new Item { B = 3 }, new Item { B = 4 } };
+        var list3 = new List<Item> { new Item { D = 5 }, new Item { D = 8 } };
+
+        // First variable: matches from list1 to list2
+        var matches1And2 = from item1 in list1
+                           from item2 in list2
+                           where item1.A == item2.B
+                           select new { item1, item2 };
+
+        // Second variable: matching first item from list3 per item1
+        var results = matches1And2
+            .Select(match => new 
+            { 
+                match.item1, 
+                match.item2, 
+                item3 = list3.FirstOrDefault(item3 => item3.D == match.item1.C)
+            })
+            .Where(result => result.item3 != null)
+            .ToList();
+
+        foreach (var result in results)
+        {
+            Console.WriteLine($"List1 Item A: {result.item1.A}, List2 Item B: {result.item2.B}, List3 Item D: {result.item3.D}");
+        }
+    }
+}
 
