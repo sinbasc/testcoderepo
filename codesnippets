@@ -238,15 +238,15 @@ public class Program
             new Item { Id = 3, A = 50, B = 60 } 
         };
 
-        var finalList = (
-            from item1 in list1
-            from item2 in list2
-            where item1.Id == item2.Id
-            let firstMatch = list3.FirstOrDefault(item3 => item2.A == item3.B)
-            where firstMatch != null
-            select new { Item2 = item2, Item3 = firstMatch }
-        ).Distinct()
-        .ToList();
+        var results = (from item1 in list1
+               from item2 in list2
+               where item1.Id == item2.Id
+               let firstMatch = list3.FirstOrDefault(item3 => item2.A == item3.B)
+               where firstMatch != null
+               select new { Item1 = item1, Item2 = item2, Item3 = firstMatch })
+               .Distinct()
+               .ToList();
+
 
         foreach (var result in finalList)
         {
