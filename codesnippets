@@ -128,3 +128,40 @@ public class Program
     }
 }
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public class Program
+{
+    public class Item
+    {
+        public int A { get; set; }
+        public int B { get; set; }
+        public int C { get; set; }
+        public int D { get; set; }
+    }
+    
+    public static void Main()
+    {
+        var list1 = new List<Item> { new Item { A = 1, C = 5 }, new Item { A = 2, C = 6 }, new Item { A = 3, C = 7 } };
+        var list2 = new List<Item> { new Item { B = 2 }, new Item { B = 3 }, new Item { B = 4 } };
+        var list3 = new List<Item> { new Item { D = 5 }, new Item { D = 8 } };
+
+        var results = list1
+            .Select(item1 => new
+            {
+                item1,
+                item2 = list2.FirstOrDefault(item2 => item2.B == item1.A),
+                item3 = list3.FirstOrDefault(item3 => item3.D == item1.C)
+            })
+            .Where(result => result.item2 != null && result.item3 != null)
+            .ToList();
+
+        foreach (var result in results)
+        {
+            Console.WriteLine($"List1 Item A: {result.item1.A}, List2 Item B: {result.item2.B}, List3 Item D: {result.item3.D}");
+        }
+    }
+}
+
