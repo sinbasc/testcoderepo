@@ -1,0 +1,43 @@
+using Amazon.SQS;
+using Amazon.SQS.Model;
+using System.Collections.Generic;
+
+var sqsClient = new AmazonSQSClient();
+var queueUrl = "your-fifo-queue-url";
+
+// Create batch request entries
+var batchRequestEntries = new List<SendMessageBatchRequestEntry>
+{
+    new SendMessageBatchRequestEntry
+    {
+        Id = "msg1", // Unique ID for each message in the batch
+        MessageBody = "Message content for A",
+        MessageGroupId = "Group1",
+        MessageDeduplicationId = "deduplicationId1"
+    },
+    new SendMessageBatchRequestEntry
+    {
+        Id = "msg2",
+        MessageBody = "Message content for B",
+        MessageGroupId = "Group1",
+        MessageDeduplicationId = "deduplicationId2"
+    },
+    new SendMessageBatchRequestEntry
+    {
+        Id = "msg3",
+        MessageBody = "Message content for C",
+        MessageGroupId = "Group1",
+        MessageDeduplicationId = "deduplicationId3"
+    }
+};
+
+// Create batch request
+var sendMessageBatchRequest = new SendMessageBatchRequest
+{
+    QueueUrl = queueUrl,
+    Entries = batchRequestEntries
+};
+
+// Send batch
+var response = await sqsClient.SendMessageBatchAsync(sendMessageBatchRequest);
+Console.WriteLine("Messages sent in batch: " + response.Successful.Count);
