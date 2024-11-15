@@ -1,0 +1,46 @@
+service: cloud-management
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  stage: dev
+  region: us-east-1
+
+functions:
+  processCloudFrontLogs:
+    handler: handler.processCloudFrontLogs
+    events:
+      - s3:
+          bucket: my-cloudfront-logs-bucket
+          event: s3:ObjectCreated:*
+
+resources:
+  Resources:
+    MyCloudFrontLogsBucket:
+      Type: 'AWS::S3::Bucket'
+      Properties:
+        BucketName: my-cloudfront-logs-bucket
+        AccessControl: LogDeliveryWrite
+        LoggingConfiguration:
+          DestinationBucketName: my-logging-bucket
+          LogFilePrefix: cloudfront-logs/
+
+    MyLoggingBucket:
+      Type: 'AWS::S3::Bucket'
+      Properties:
+        BucketName: my-logging-bucket
+        AccessControl: LogDeliveryWrite
+
+    MyCloudTrailTrail:
+      Type: 'AWS::CloudTrail::Trail'
+      Properties:
+        S3BucketName: my-cloudtrail-logs-bucket
+        S3KeyPrefix: cloudtrail/
+        IncludeGlobalServiceEvents: true
+        IsLogging: true
+
+    MyCloudTrailLogsBucket:
+      Type: 'AWS::S3::Bucket'
+      Properties:
+        BucketName: my-cloudtrail-logs-bucket
+        AccessControl: LogDeliveryWrite
