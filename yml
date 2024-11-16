@@ -13,6 +13,7 @@ resources:
       Type: 'AWS::S3::Bucket'
       Properties:
         BucketName: bucket-a  # Existing bucket to enable logging for
+        ObjectOwnership: BucketOwnerEnforced  # Enforce bucket owner
         LoggingConfiguration:
           DestinationBucketName: !Ref LoggingBucket  # Reference to logging-bucket
           LogFilePrefix: s3-logs/
@@ -28,6 +29,17 @@ resources:
       Properties:
         DistributionConfig:
           Enabled: true
+          Origins:
+            - Id: S3Bucket
+              DomainName: !GetAtt BucketA.DomainName
+              S3OriginConfig:
+                OriginAccessIdentity: !Ref OriginAccessIdentity
+          DefaultCacheBehavior:
+            TargetOriginId: S3Bucket
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods:
+              - GET
+              - HEAD
           Logging:
             Bucket: !Sub '${LoggingBucket}.s3.amazonaws.com'  # Reference to logging-bucket
             Prefix: cloudfront-logs/
@@ -62,3 +74,10 @@ resources:
             Value: Production
           - Key: Project
             Value: YourProjectName
+
+    # Origin Access Identity for CloudFront
+    OriginAccessIdentity:
+      Type: 'AWS::CloudFront::CloudFrontOriginAccessIdentity'
+      Properties:
+        CloudFrontOriginAccessIdentityConfig:
+          Comment: "Access to S3 bucket from CloudFront"
