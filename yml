@@ -22,18 +22,6 @@ resources:
           - Key: Project
             Value: YourProjectName
 
-    # CloudFront Logs Bucket
-    CloudFrontLogsBucket:
-      Type: 'AWS::S3::Bucket'
-      Properties:
-        BucketName: cloudfront-d-logs-bucket  # Separate bucket for CloudFront logs
-        AccessControl: LogDeliveryWrite
-        Tags:
-          - Key: Environment
-            Value: Production
-          - Key: Project
-            Value: YourProjectName
-
     # CloudFront Logging Configuration
     CloudFrontDistribution:
       Type: 'AWS::CloudFront::Distribution'
@@ -41,7 +29,7 @@ resources:
         DistributionConfig:
           Enabled: true
           Logging:
-            Bucket: cloudfront-d-logs-bucket.s3.amazonaws.com
+            Bucket: logging-bucket.s3.amazonaws.com  # Same logging bucket
             Prefix: cloudfront-logs/
         Tags:
           - Key: Environment
