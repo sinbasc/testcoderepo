@@ -8,31 +8,69 @@ provider:
 
 resources:
   Resources:
-    MyCloudFrontLogsBucket:
+    # Logging for Bucket A
+    BucketA:
       Type: 'AWS::S3::Bucket'
       Properties:
-        BucketName: my-cloudfront-logs-bucket
-        AccessControl: LogDeliveryWrite
+        BucketName: bucket-a  # Existing bucket to enable logging for
         LoggingConfiguration:
-          DestinationBucketName: my-logging-bucket
-          LogFilePrefix: cloudfront-logs/
+          DestinationBucketName: logging-bucket  # Bucket to store logs for bucket-a
+          LogFilePrefix: s3-logs/
+        Tags:
+          - Key: Environment
+            Value: Production
+          - Key: Project
+            Value: YourProjectName
 
-    MyLoggingBucket:
+    # CloudFront Logs Bucket
+    CloudFrontLogsBucket:
       Type: 'AWS::S3::Bucket'
       Properties:
-        BucketName: my-logging-bucket
+        BucketName: cloudfront-d-logs-bucket  # Separate bucket for CloudFront logs
         AccessControl: LogDeliveryWrite
+        Tags:
+          - Key: Environment
+            Value: Production
+          - Key: Project
+            Value: YourProjectName
 
-    MyCloudTrailTrail:
+    # CloudFront Logging Configuration
+    CloudFrontDistribution:
+      Type: 'AWS::CloudFront::Distribution'
+      Properties:
+        DistributionConfig:
+          Enabled: true
+          Logging:
+            Bucket: cloudfront-d-logs-bucket.s3.amazonaws.com
+            Prefix: cloudfront-logs/
+        Tags:
+          - Key: Environment
+            Value: Production
+          - Key: Project
+            Value: YourProjectName
+
+    # CloudTrail Trail for CloudFormation logs
+    CloudTrailTrail:
       Type: 'AWS::CloudTrail::Trail'
       Properties:
-        S3BucketName: my-cloudtrail-logs-bucket
-        S3KeyPrefix: cloudtrail/
+        S3BucketName: logging-bucket  # Same bucket for CloudTrail logs with different prefix
+        S3KeyPrefix: cloudtrail-logs/
         IncludeGlobalServiceEvents: true
         IsLogging: true
+        Tags:
+          - Key: Environment
+            Value: Production
+          - Key: Project
+            Value: YourProjectName
 
-    MyCloudTrailLogsBucket:
+    # Logging Bucket
+    LoggingBucket:
       Type: 'AWS::S3::Bucket'
       Properties:
-        BucketName: my-cloudtrail-logs-bucket
+        BucketName: logging-bucket  # Central bucket for all logs
         AccessControl: LogDeliveryWrite
+        Tags:
+          - Key: Environment
+            Value: Production
+          - Key: Project
+            Value: YourProjectName
