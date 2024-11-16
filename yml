@@ -13,7 +13,6 @@ resources:
       Type: 'AWS::S3::Bucket'
       Properties:
         BucketName: bucket-a  # Existing bucket to enable logging for
-        ObjectOwnership: BucketOwnerEnforced  # Enforce bucket owner
         LoggingConfiguration:
           DestinationBucketName: !Ref LoggingBucket  # Reference to logging-bucket
           LogFilePrefix: s3-logs/
@@ -68,12 +67,48 @@ resources:
       Type: 'AWS::S3::Bucket'
       Properties:
         BucketName: logging-bucket  # Central bucket for all logs
-        AccessControl: LogDeliveryWrite
         Tags:
           - Key: Environment
             Value: Production
           - Key: Project
             Value: YourProjectName
+
+    # Bucket Policy for Logging Bucket
+    LoggingBucketPolicy:
+      Type: 'AWS::S3::BucketPolicy'
+      Properties:
+        Bucket: !Ref LoggingBucket
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Sid: AllowCloudFrontAccess
+              Effect: Allow
+              Principal:
+                Service: cloudfront.amazonaws.com
+              Action: s3:PutObject
+              Resource: !Sub '${LoggingBucket.Arn}/cloudfront-logs/*'
+              Condition:
+                StringEquals:
+                  AWS:SourceArn: !Ref CloudFrontDistribution
+
+            - Sid: AllowCloudTrailAccess
+              Effect: Allow
+              Principal:
+                Service: cloudtrail.amazonaws.com
+              Action: s3:PutObject
+              Resource: !Sub '${LoggingBucket.Arn}/cloudtrail-logs/*'
+              Condition:
+                StringEquals:
+                  aws:SourceAccount: !Ref AWS::AccountId
+
+            - Sid: AllowS3Logging
+              Effect: Allow
+              Principal: '*'
+              Action: s3:PutObject
+              Resource: !Sub '${LoggingBucket.Arn}/s3-logs/*'
+              Condition:
+                StringEquals:
+                  s3:x-amz-acl: bucket-owner-full-control
 
     # Origin Access Identity for CloudFront
     OriginAccessIdentity:
