@@ -1,0 +1,20 @@
+import boto3
+
+s3 = boto3.client('s3')
+
+def find_correct_key(bucket_name, key_name):
+    paginator = s3.get_paginator('list_objects_v2')
+    for page in paginator.paginate(Bucket=bucket_name):
+        for obj in page.get('Contents', []):
+            if obj['Key'].lower() == key_name.lower():
+                return obj['Key']
+    return None
+
+bucket_name = 'your-bucket-name'
+key_name = 'KeyNameFromUpstream'  # Replace this with the key name you're getting
+
+correct_key_name = find_correct_key(bucket_name, key_name)
+if correct_key_name:
+    print(f'Correct Key Found: {correct_key_name}')
+else:
+    print('Key not found in bucket.')
