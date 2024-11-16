@@ -14,7 +14,7 @@ resources:
       Properties:
         BucketName: bucket-a  # Existing bucket to enable logging for
         LoggingConfiguration:
-          DestinationBucketName: logging-bucket  # Bucket to store logs for bucket-a
+          DestinationBucketName: !Ref LoggingBucket  # Reference to logging-bucket
           LogFilePrefix: s3-logs/
         Tags:
           - Key: Environment
@@ -29,7 +29,7 @@ resources:
         DistributionConfig:
           Enabled: true
           Logging:
-            Bucket: logging-bucket.s3.amazonaws.com  # Same logging bucket
+            Bucket: !Sub '${LoggingBucket}.s3.amazonaws.com'  # Reference to logging-bucket
             Prefix: cloudfront-logs/
         Tags:
           - Key: Environment
@@ -41,7 +41,7 @@ resources:
     CloudTrailTrail:
       Type: 'AWS::CloudTrail::Trail'
       Properties:
-        S3BucketName: logging-bucket  # Same bucket for CloudTrail logs with different prefix
+        S3BucketName: !Ref LoggingBucket  # Reference to logging-bucket
         S3KeyPrefix: cloudtrail-logs/
         IncludeGlobalServiceEvents: true
         IsLogging: true
