@@ -8,21 +8,7 @@ provider:
 
 resources:
   Resources:
-    # Logging for Bucket A
-    BucketA:
-      Type: 'AWS::S3::Bucket'
-      Properties:
-        BucketName: bucket-a  # Existing bucket to enable logging for
-        LoggingConfiguration:
-          DestinationBucketName: !Ref LoggingBucket  # Reference to logging-bucket
-          LogFilePrefix: s3-logs/
-        Tags:
-          - Key: Environment
-            Value: Production
-          - Key: Project
-            Value: YourProjectName
-
-    # CloudFront Logging Configuration
+    # Placeholder for Your CloudFront Configuration
     CloudFrontDistribution:
       Type: 'AWS::CloudFront::Distribution'
       Properties:
@@ -30,9 +16,9 @@ resources:
           Enabled: true
           Origins:
             - Id: S3Bucket
-              DomainName: !GetAtt BucketA.DomainName
+              DomainName: <YOUR_BUCKET_DOMAIN_NAME>
               S3OriginConfig:
-                OriginAccessIdentity: !Ref OriginAccessIdentity
+                OriginAccessControlId: <YOUR_ORIGIN_ACCESS_CONTROL_ID>
           DefaultCacheBehavior:
             TargetOriginId: S3Bucket
             ViewerProtocolPolicy: redirect-to-https
@@ -40,8 +26,22 @@ resources:
               - GET
               - HEAD
           Logging:
-            Bucket: !Sub '${LoggingBucket}.s3.amazonaws.com'  # Reference to logging-bucket
+            Bucket: !Sub '${LoggingBucket}.s3.amazonaws.com'
             Prefix: cloudfront-logs/
+        Tags:
+          - Key: Environment
+            Value: Production
+          - Key: Project
+            Value: YourProjectName
+
+    # Placeholder for Your Bucket Configuration
+    BucketA:
+      Type: 'AWS::S3::Bucket'
+      Properties:
+        BucketName: <YOUR_BUCKET_NAME>
+        LoggingConfiguration:
+          DestinationBucketName: !Ref LoggingBucket
+          LogFilePrefix: s3-logs/
         Tags:
           - Key: Environment
             Value: Production
@@ -52,7 +52,7 @@ resources:
     CloudTrailTrail:
       Type: 'AWS::CloudTrail::Trail'
       Properties:
-        S3BucketName: !Ref LoggingBucket  # Reference to logging-bucket
+        S3BucketName: !Ref LoggingBucket
         S3KeyPrefix: cloudtrail-logs/
         IncludeGlobalServiceEvents: true
         IsLogging: true
@@ -66,7 +66,7 @@ resources:
     LoggingBucket:
       Type: 'AWS::S3::Bucket'
       Properties:
-        BucketName: logging-bucket  # Central bucket for all logs
+        BucketName: logging-bucket
         Tags:
           - Key: Environment
             Value: Production
@@ -109,10 +109,3 @@ resources:
               Condition:
                 StringEquals:
                   s3:x-amz-acl: bucket-owner-full-control
-
-    # Origin Access Identity for CloudFront
-    OriginAccessIdentity:
-      Type: 'AWS::CloudFront::CloudFrontOriginAccessIdentity'
-      Properties:
-        CloudFrontOriginAccessIdentityConfig:
-          Comment: "Access to S3 bucket from CloudFront"
