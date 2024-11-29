@@ -17,18 +17,23 @@ response = sqs.receive_message(
     QueueUrl=queue_url,
     MaxNumberOfMessages=10,
     WaitTimeSeconds=10,
-    MessageAttributeNames=['All']
+    MessageAttributeNames=['All'],
+    AttributeNames=['All']
 )
 
 if 'Messages' in response:
     for message in response['Messages']:
-        # Assuming messages have a timestamp attribute
         message_timestamp = message['Attributes'].get('SentTimestamp')
         message_time = datetime.fromtimestamp(int(message_timestamp) / 1000.0)
 
         if message_time > time_threshold:
-            messages_to_process.append(message)
+            messages_to_process.append({
+                'MessageId': message['MessageId'],
+                'Body': message['Body'],
+                'SentTimestamp': message['Attributes']['SentTimestamp'],
+                'Status': 'Received'
+            })
 
-# Process the filtered messages
+# Print message details
 for msg in messages_to_process:
-    print(f"Message ID: {msg['MessageId']}, Sent at: {msg['Attributes']['SentTimestamp']}")
+    print(f"Message ID: {msg['MessageId']}, Sent at: {msg['SentTimestamp']}, Body: {msg['Body']}, Status: {msg['Status']}")
