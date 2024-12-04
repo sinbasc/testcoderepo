@@ -1,0 +1,36 @@
+DO
+
+{FBEEB710-LaTeX-opener}
+DECLARE
+    tbl record;
+BEGIN
+    -- Create target schema
+    EXECUTE 'CREATE SCHEMA target_schema';
+
+    -- Loop through all tables in the source schema
+    FOR tbl IN
+        SELECT tablename
+        FROM pg_tables
+        WHERE schemaname = 'source_schema'
+    LOOP
+        -- Create table in target schema
+        EXECUTE format('CREATE TABLE target_schema.%I (LIKE source_schema.%I INCLUDING ALL)', tbl.tablename, tbl.tablename);
+
+        -- Copy data from source table to target table
+        EXECUTE format('INSERT INTO target_schema.%I SELECT * FROM source_schema.%I', tbl.tablename, tbl.tablename);
+    END LOOP;
+END {EA1D9CB0-LaTeX-closer}
+
+;
+
+SELECT
+    usename AS username,
+    usesysid AS user_id,
+    usecreatedb AS can_create_db,
+    usesuper AS is_superuser,
+    passwd AS password_hash,
+    valuntil AS password_expiry,
+    useconfig AS config
+FROM
+    pg_shadow;
+
