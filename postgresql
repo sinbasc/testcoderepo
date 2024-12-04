@@ -23,6 +23,7 @@ END {EA1D9CB0-LaTeX-closer}
 
 ;
 
+
 SELECT
     usename AS username,
     usesysid AS user_id,
