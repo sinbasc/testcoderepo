@@ -35,3 +35,30 @@ SELECT
 FROM
     pg_shadow;
 
+
+
+
+import urllib.parse
+from sqlalchemy import create_engine
+
+# Your database credentials
+username = 'your_username'
+password = 'your@password'
+hostname = 'your_host'
+database = 'your_database'
+
+# URL-encode the password
+encoded_password = urllib.parse.quote(password)
+
+# Create the database URL
+database_url = f'postgresql://{username}:{encoded_password}@{hostname}/{database}'
+
+# Create the engine
+engine = create_engine(database_url)
+
+# Connect to the database
+connection = engine.connect()
+print("Connection successful!")
+
+
+
