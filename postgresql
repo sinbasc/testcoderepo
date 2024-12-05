@@ -61,4 +61,25 @@ connection = engine.connect()
 print("Connection successful!")
 
 
+import urllib.parse
+from sqlalchemy import create_engine
+
+# Your database credentials
+username = 'your_username'
+password = 'your@password'
+hostname = 'your_host'
+database = 'your_database'
+
+# Construct the raw database URL
+raw_db_url = f'postgresql://{username}:{password}@{hostname}/{database}'
+
+# URL-encode the entire database URL
+encoded_db_url = urllib.parse.quote(raw_db_url, safe=':/@')
+
+# Create the engine
+engine = create_engine(encoded_db_url)
+
+# Connect to the database
+connection = engine.connect()
+print("Connection successful!")
 
