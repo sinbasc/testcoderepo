@@ -303,3 +303,26 @@ public class Program
         }
     }
 }
+
+import boto3
+
+# Initialize a session using Amazon SQS
+sqs = boto3.client('sqs', region_name='your-region')
+
+# Replace with your queue URL
+queue_url = 'https://sqs.your-region.amazonaws.com/your-account-id/your-queue-name'
+
+def send_message(message_body):
+    try:
+        response = sqs.send_message(
+            QueueUrl=queue_url,
+            MessageBody=message_body
+        )
+        print(f'Message ID: {response["MessageId"]}')
+    except Exception as e:
+        print(f'Error sending message: {e}')
+
+if __name__ == "__main__":
+    message_body = 'Hello, this is a test message!'
+    send_message(message_body)
+
