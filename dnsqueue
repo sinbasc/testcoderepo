@@ -1,0 +1,110 @@
+using System;
+using System.Threading.Tasks;
+using Amazon;
+using Amazon.SQS;
+using Amazon.SQS.Model;
+using Amazon.ServiceDiscovery;
+using Amazon.ServiceDiscovery.Model;
+
+public class Program
+{
+    public static async Task Main(string[] args)
+    {
+        // Define namespace and service name
+        var namespaceName = "my-namespace";
+        var serviceName = "queue";
+
+        // Resolve the custom domain to either blue-q or green-q
+        var resolvedDns = Dns.GetHostEntry("queue.example.com");
+
+        if (resolvedDns.AddressList.Length == 0)
+        {
+            Console.WriteLine("No records found for the domain.");
+            return;
+        }
+
+        // Choose the first resolved address (simplified)
+        var resolvedServiceName = resolvedDns.HostName;
+
+        // Initialize AWS Cloud Map client
+        var cloudMapClient = new AmazonServiceDiscoveryClient(RegionEndpoint.USEast1);
+
+        // Discover instances from Cloud Map
+        var discoverInstancesRequest = new DiscoverInstancesRequest
+        {
+            NamespaceName = namespaceName,
+            ServiceName = resolvedServiceName // This should resolve to either blue-q or green-q
+        };
+
+        var discoverInstancesResponse = await cloudMapClient.DiscoverInstancesAsync(discoverInstancesRequest);
+
+        if (discoverInstancesResponse.Instances.Count == 0)
+        {
+            Console.WriteLine("No instances found for the service.");
+            return;
+        }
+
+        // Get the SQS queue URL from Cloud Map
+        var instance = discoverInstancesResponse.Instances[0];
+        var queueUrl = instance.Attributes["AWS_INSTANCE_IPV4"];
+
+        // Extract the region from the queue URL
+        var region = ExtractRegionFromQueueUrl(queueUrl);
+
+        // Initialize SQS client with the extracted region
+        var sqsClient = new AmazonSQSClient(RegionEndpoint.GetBySystemName(region));
+
+        // Create a batch of messages
+        var entries = new[]
+        {
+            new SendMessageBatchRequestEntry
+            {
+                Id = "1",
+                MessageBody = "Message 1",
+                MessageGroupId = "group1",
+                MessageDeduplicationId = Guid.NewGuid().ToString()
+            },
+            new SendMessageBatchRequestEntry
+            {
+                Id = "2",
+                MessageBody = "Message 2",
+                MessageGroupId = "group1",
+                MessageDeduplicationId = Guid.NewGuid().ToString()
+            },
+            new SendMessageBatchRequestEntry
+            {
+                Id = "3",
+                MessageBody = "Message 3",
+                MessageGroupId = "group1",
+                MessageDeduplicationId = Guid.NewGuid().ToString()
+            }
+        };
+
+        // Send batch messages to the SQS queue
+        var sendMessageBatchRequest = new SendMessageBatchRequest
+        {
+            QueueUrl = queueUrl,
+            Entries = entries
+        };
+        var sendMessageBatchResponse = await sqsClient.SendMessageBatchAsync(sendMessageBatchRequest);
+
+        if (sendMessageBatchResponse.Failed.Count > 0)
+        {
+            Console.WriteLine("Some messages failed to send.");
+        }
+        else
+        {
+            Console.WriteLine("Batch messages sent successfully!");
+        }
+    }
+
+    private static string ExtractRegionFromQueueUrl(string queueUrl)
+    {
+        var parts = queueUrl.Split('.');
+        if (parts.Length < 2)
+        {
+            throw new ArgumentException("Invalid SQS queue URL format.");
+        }
+        return parts[1]; // Extract the region part from the URL
+    }
+}
