@@ -1,0 +1,45 @@
+# Use Ubuntu 18.04 as the base image
+FROM ubuntu:18.04
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    python3.9 \
+    python3.9-venv \
+    python3.9-dev \
+    wget \
+    curl \
+    unzip
+
+# Install pip
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && python3.9 get-pip.py
+
+# Create a virtual environment
+RUN python3.9 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Install New Relic Python agent
+RUN pip install newrelic
+
+# Download and install the New Relic Lambda extension
+RUN mkdir -p /opt/newrelic/extensions
+RUN wget -O /tmp/newrelic-lambda-extension.zip https://download.newrelic.com/extensions/newrelic-lambda-extension.zip \
+    && unzip /tmp/newrelic-lambda-extension.zip -d /opt/newrelic/extensions \
+    && rm /tmp/newrelic-lambda-extension.zip
+
+# Set New Relic environment variables
+ENV NEW_RELIC_LICENSE_KEY=<your_new_relic_license_key>
+ENV NEW_RELIC_APP_NAME="MyPythonApp"
+ENV NEW_RELIC_LOG_ENABLED=false
+ENV NEW_RELIC_EXTENSION_LOG_LEVEL=info
+
+# Copy your application code to the container
+COPY . /app
+
+# Set the working directory
+WORKDIR /app
+
+# Install your application dependencies
+RUN pip install -r requirements.txt
+
+# Start your application
+CMD ["python3.9", "app.py"]
