@@ -26,9 +26,12 @@ RUN wget -O /tmp/newrelic-lambda-extension.zip https://download.newrelic.com/ext
     && unzip /tmp/newrelic-lambda-extension.zip -d /opt/newrelic/extensions \
     && rm /tmp/newrelic-lambda-extension.zip
 
+# Copy New Relic extension files from /opt to /opt
+COPY --from=newrelic-lambda-layers-for-docker/newrelic-lambda-layers-python:39 /opt/ /opt/
+
 # Set New Relic environment variables
-ENV NEW_RELIC_LICENSE_KEY=<your_new_relic_license_key>
-ENV NEW_RELIC_APP_NAME="MyPythonApp"
+ENV NEW_RELIC_ACCOUNT_ID=<your_newrelic_account_id>
+ENV NEW_RELIC_API_KEY=<your_newrelic_api_key>
 ENV NEW_RELIC_LOG_ENABLED=false
 ENV NEW_RELIC_EXTENSION_LOG_LEVEL=info
 
