@@ -1,0 +1,72 @@
+import boto3
+import json
+from botocore.exceptions import NoCredentialsError, PartialCredentialsError
+
+# Initialize the boto3 client for SQS
+sqs = boto3.client('sqs')
+
+# Replace with your queue URLs
+main_queue_url = 'https://sqs.region.amazonaws.com/account-id/main-queue'
+max_retries = 3
+
+def process_message(message):
+    try:
+        # Placeholder for your message processing logic
+        print(f"Processing message: {message['Body']}")
+        raise Exception("Simulated processing error")  # Simulate an error for demonstration
+    except Exception as e:
+        print(f"Error processing message: {e}")
+        retry_count = int(message['MessageAttributes'].get('RetryCount', {'StringValue': '0'})['StringValue']) + 1
+        if retry_count >= max_retries:
+            print(f"Moving to DLQ after {retry_count} retries")
+        else:
+            requeue_message(message, retry_count, str(e))
+
+def requeue_message(message, retry_count, error_message):
+    try:
+        message_body = json.loads(message['Body'])
+        message_body['error_details'] = error_message
+
+        response = sqs.send_message(
+            QueueUrl=main_queue_url,
+            MessageBody=json.dumps(message_body),
+            MessageAttributes={
+                'RetryCount': {
+                    'StringValue': str(retry_count),
+                    'DataType': 'Number'
+                },
+                'ErrorDetails': {
+                    'StringValue': error_message,
+                    'DataType': 'String'
+                }
+            }
+        )
+        print(f"Message re-queued: {response['MessageId']}")
+    except (NoCredentialsError, PartialCredentialsError) as e:
+        print(f"Credential error: {e}")
+    except Exception as e:
+        print(f"Failed to re-queue message: {e}")
+
+def main():
+    response = sqs.receive_message(
+        QueueUrl=main_queue_url,
+        MaxNumberOfMessages=10,
+        WaitTimeSeconds=10,
+        MessageAttributeNames=['All'],
+        AttributeNames=['All']
+    )
+
+    messages = response.get('Messages', [])
+    for message in messages:
+        try:
+            process_message(message)
+            sqs.delete_message(
+                QueueUrl=main_queue_url,
+                ReceiptHandle=message['ReceiptHandle']
+            )
+        except Exception as e:
+            print(f"Failed to process message: {e}")
+            continue
+
+if __name__ == "__main__":
+    main()
