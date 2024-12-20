@@ -1,0 +1,9 @@
+SELECT s.sample_time, 
+       u.username, 
+       s.sql_id, 
+       t.sql_text
+FROM DBA_HIST_SQLSTAT s
+JOIN DBA_USERS u ON s.parsing_schema_id = u.user_id
+JOIN DBA_HIST_SQLTEXT t ON s.sql_id = t.sql_id
+WHERE TRUNC(s.sample_time) = TO_DATE('YYYY-MM-DD', 'YYYY-MM-DD')
+ORDER BY s.sample_time;
