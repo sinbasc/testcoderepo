@@ -19,3 +19,17 @@ JOIN DBA_HIST_SQLTEXT t ON p.sql_id = t.sql_id
 JOIN DBA_USERS u ON t.parsing_schema_id = u.user_id
 WHERE TRUNC(p.begin_interval_time) = TO_DATE('YYYY-MM-DD', 'YYYY-MM-DD')
 ORDER BY p.begin_interval_time;
+
+SELECT s.sql_id,
+       t.sql_text,
+       s.snap_id,
+       ss.begin_interval_time
+FROM DBA_HIST_SQLSTAT s
+JOIN DBA_HIST_SQLTEXT t ON s.sql_id = t.sql_id
+JOIN DBA_HIST_SNAPSHOT ss ON s.snap_id = ss.snap_id
+WHERE TRUNC(ss.begin_interval_time) = TO_DATE('YYYY-MM-DD', 'YYYY-MM-DD')
+ORDER BY ss.begin_interval_time;
+
+
+
+
