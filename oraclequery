@@ -7,3 +7,15 @@ JOIN DBA_USERS u ON s.parsing_schema_id = u.user_id
 JOIN DBA_HIST_SQLTEXT t ON s.sql_id = t.sql_id
 WHERE TRUNC(s.sample_time) = TO_DATE('YYYY-MM-DD', 'YYYY-MM-DD')
 ORDER BY s.sample_time;
+
+
+
+SELECT p.begin_interval_time, 
+       u.username, 
+       t.sql_id, 
+       t.sql_text
+FROM DBA_HIST_SQL_PLAN p
+JOIN DBA_HIST_SQLTEXT t ON p.sql_id = t.sql_id
+JOIN DBA_USERS u ON t.parsing_schema_id = u.user_id
+WHERE TRUNC(p.begin_interval_time) = TO_DATE('YYYY-MM-DD', 'YYYY-MM-DD')
+ORDER BY p.begin_interval_time;
