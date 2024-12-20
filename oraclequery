@@ -30,6 +30,14 @@ JOIN DBA_HIST_SNAPSHOT ss ON s.snap_id = ss.snap_id
 WHERE TRUNC(ss.begin_interval_time) = TO_DATE('YYYY-MM-DD', 'YYYY-MM-DD')
 ORDER BY ss.begin_interval_time;
 
+SELECT s.sql_id,
+       s.sql_text,
+       TO_CHAR(s.FIRST_LOAD_TIME, 'YYYY-MM-DD HH24:MI:SS') AS first_load_time
+FROM V$SQL s
+WHERE TRUNC(s.FIRST_LOAD_TIME) = TO_DATE('YYYY-MM-DD', 'YYYY-MM-DD')
+ORDER BY s.FIRST_LOAD_TIME;
+
+
 
 
 
