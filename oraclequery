@@ -39,5 +39,13 @@ ORDER BY s.FIRST_LOAD_TIME;
 
 
 
+SELECT s.sql_id,
+       t.sql_text,
+       TO_CHAR(ss.begin_interval_time, 'YYYY-MM-DD HH24:MI:SS') AS begin_interval_time
+FROM DBA_HIST_SQLTEXT t
+JOIN DBA_HIST_SQLSTAT s ON t.sql_id = s.sql_id
+JOIN DBA_HIST_SNAPSHOT ss ON s.snap_id = ss.snap_id
+WHERE TRUNC(ss.begin_interval_time) = TO_DATE('YYYY-MM-DD', 'YYYY-MM-DD')
+ORDER BY ss.begin_interval_time;
 
 
