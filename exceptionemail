@@ -1,0 +1,22 @@
+**Subject**: Request for Exception from Security Vulnerability Scan for Application A
+
+**Dear Application Security Team**,
+
+I hope this message finds you well. I am writing to request an exception for Application A from the upcoming security vulnerability scan, which generates tickets on the product scorecard.
+
+**Reason for Exception**:
+Application A is scheduled for decommissioning in the near future, and it does not make sense to allocate resources to fix vulnerabilities in an application that will soon be retired.
+
+**Impact Assessment**:
+- The impact of any existing vulnerabilities in Application A is minimal as the application is accessible only to internal teams and is not publicly accessible.
+- Emphasizing the non-public nature of Application A, we believe it is reasonable to grant an exception for this application from the security vulnerability scan, including for critical vulnerabilities.
+
+Given these factors, we kindly request that Application A be exempted from the security vulnerability scan and the associated ticket generation process.
+
+Thank you for considering this request. Please let me know if you need any further information or have any concerns.
+
+**Best regards,**
+
+[Your Name]  
+[Your Position]  
+[Your Contact Information]
