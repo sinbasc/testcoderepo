@@ -1,0 +1,27 @@
+Here’s a checklist based on your content, with some additional context and improvements for clarity:
+
+### **Deployment Checklist**
+
+1. **Navigate to Deployment Page**:
+   - Go to <page placeholder> and check if there is a release branch with today's date in the name.
+
+2. **CAB Ticket Status**:
+   - Ensure the CAB ticket is in the "Awaiting Implementation" state.
+
+3. **Follow Ticket Instructions**:
+   - Check for specific instructions in the wiki attached to the ticket and follow them along with the next steps.
+
+4. **Identify Tickets for Deployment**:
+   - Check for the tickets in "Awaiting Release." These are the ones to be deployed.
+
+5. **Create Tag and Merge PRs**:
+   - Create a tag and then merge Pull Requests (PRs).
+
+6. **Perform Deployment**:
+   - Execute the deployment using the particular application jobs.
+
+7. **Run Direct Database Queries**:
+   - If there is a direct database query to be executed, please run the query and commit it in DBeaver.
+
+8. **Verify Deployment and Query Output**:
+   - Get the application sanity and query output verified by QA.
