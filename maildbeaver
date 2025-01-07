@@ -1,0 +1,7 @@
+Subject: Enable Auto-Commit Option in DBeaver
+Hi all,
+We have recently migrated to the VDI system. With this new setup, our older application, Oracle SQL Developer, is not available by default or installable from the software center. Instead, we have DBeaver, which seamlessly connects to multiple databases. However, please ensure you have enabled the auto-commit feature to the desired value in this application.
+We recently encountered an issue due to the auto-commit feature not being enabled in DBeaver, which was contrary to the default setting in Oracle SQL Developer. This email aims to raise awareness and emphasize the importance of setting up the auto-commit feature correctly to avoid similar issues.
+Thank you for your attention.
+Best regards,
+[Your Name]
