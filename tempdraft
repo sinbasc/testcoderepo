@@ -1,0 +1,7 @@
+We recently completed the implementation of Harness and NewRelic and merged them into the QA branch for testing with web access and other website tickets. To save bandwidth and expedite the release, we skipped individual QA for these two components.
+For Tushar's ticket, we initially added PEM to the environment, which was not the correct approach. This too was added to the release branch. After the QA deployment failure yesterday, we had to remove these items from the release branch and resolve conflicts today, with a major part of the effort being lock file generation. Additionally, we had to remove NewRelic because its packages made the Lambda size exceed the 250 MB limit.
+Consequently, we have removed the web access, Harness, and NewRelic items. QA will perform sanity checks on the remaining components. Regarding package size, we need to determine a strategy, but I suggest using a containerized Lambda approach.
+Note: The removal of items from the release was necessary due to several key issues:
+Incorrect strategy with PEM integration.
+Improper implementation of web access rules.
+Package size exceeding the allowed limit of 250 MB.
