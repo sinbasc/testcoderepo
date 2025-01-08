@@ -1,0 +1,30 @@
+const AWS = require('aws-sdk');
+const secretsManager = new AWS.SecretsManager({ region: 'us-west-2' });
+
+// Function to get secret value synchronously
+function getSecretValueSync(secretId) {
+  const secretValue = secretsManager.getSecretValue({ SecretId: secretId }).promise();
+  
+  let result;
+  secretValue.then(data => {
+    if (data.SecretString) {
+      result = data.SecretString;
+    } else {
+      const buff = new Buffer(data.SecretBinary, 'base64');
+      result = buff.toString('ascii');
+    }
+  }).catch(err => {
+    console.error('Error retrieving secret:', err);
+  });
+
+  while (!result) {
+    require('deasync').runLoopOnce();
+  }
+  
+  return result;
+}
+
+// Example usage
+const secretId = 'your-secret-id';
+const secret = getSecretValueSync(secretId);
+console.log('Secret:', secret);
