@@ -1,6 +1,7 @@
- The PRH Issue
-After we deployed PRH around 11 PM IST, we encountered two issues.
-The first issue was that the sync to PRH was not being initiated. The SQS was not getting invoked. As we dug deeper, we discovered that the DNS used to call SQS from the BRApp sync was incorrect. We corrected this, and the sync worked as expected.
-The second issue involved a private document appearing on the website. It's important to note that it was not an actual private document but rather a document with strange content. There was a change in the Logstash sync. The Logstash syncs data to Elasticsearch, which is where the website reads the data. When the status of a document is set to active, it shows on the website. Upon further investigation, we found that the Logstash sync was functioning correctly and that the status was being set to deleted as expected. However, some documents were somehow being updated with version 2, and this version 2 would set the status to active instead of the expected status, which is deleted. We have opened an AWS support ticket to address this issue.
-Additionally, the AWS support person suggested that the sync diff document PDF was not updated post-deployment. We redeployed it during a call and retested a few scenarios to ensure everything was functioning correctly.
-This fix needs to be thoroughly monitored in the coming days to ensure stability and to catch any further issues early.
+Issues Identified:
+DNS Name Change and SQS Address Configuration: These were not set in accordance with our Disaster Recovery (DR) plan.
+Coding Error and Review Miss: A coding error slipped through due to inadequate review processes.
+Plan to Address These Issues:
+Implement code reviews for smaller changes instead of waiting for full functionality PR reviews. This will help catch errors earlier in the development cycle.
+Health Check for Post-Production Sanity:
+Given our event-driven architecture, we propose publishing a test document to ensure post-production sanity. This document will be deleted immediately after the publishing process is complete. However, considering the sensitive nature of the application, this strategy requires approval from the relevant stakeholders.
