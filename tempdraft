@@ -5,3 +5,34 @@ Plan to Address These Issues:
 Implement code reviews for smaller changes instead of waiting for full functionality PR reviews. This will help catch errors earlier in the development cycle.
 Health Check for Post-Production Sanity:
 Given our event-driven architecture, we propose publishing a test document to ensure post-production sanity. This document will be deleted immediately after the publishing process is complete. However, considering the sensitive nature of the application, this strategy requires approval from the relevant stakeholders.
+
+
+const ExcelJS = require('exceljs');
+const db = require('./database'); // Placeholder for your database connection logic
+
+async function createExcel() {
+    // Fetch the paragraph from the database
+    const paragraph = await db.fetchParagraph();
+
+    // Calculate the number of cells to merge based on the paragraph length
+    const length = paragraph.length;
+    const cellsToMerge = Math.ceil(length / 20); // Adjust the divisor as per your requirement
+
+    // Create a new Excel workbook and worksheet
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Sheet1');
+
+    // Add the paragraph to the first cell
+    const cell = worksheet.getCell('A1');
+    cell.value = paragraph;
+
+    // Merge cells based on the calculated number
+    worksheet.mergeCells(1, 1, 1, cellsToMerge);
+
+    // Save the workbook to a file
+    await workbook.xlsx.writeFile('output.xlsx');
+    console.log('Excel file created successfully');
+}
+
+// Execute the function
+createExcel().catch(console.error);
