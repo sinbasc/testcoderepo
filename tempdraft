@@ -1,31 +1,5 @@
-const ExcelJS = require('exceljs');
-
-const workbook = new ExcelJS.Workbook();
-const worksheet = workbook.addWorksheet('Sheet 1');
-
-// Example text with URLs
-const text = "Here is a link to Google: https://www.google.com and another to GitHub: https://github.com";
-
-// Regular expression to find URLs
-const urlRegex = /(https?:\/\/[^\s]+)/g;
-
-// Split the text into parts
-const parts = text.split(urlRegex);
-
-// Create richText array
-const richText = parts.map(part => {
-    if (urlRegex.test(part)) {
-        return { text: part, font: { underline: true, color: { argb: 'FF0000' } } }; // Style URLs
-    }
-    return { text: part }; // Plain text
-});
-
-worksheet.getCell('A1').value = { richText };
-
-workbook.xlsx.writeFile('styled_urls.xlsx')
-    .then(() => {
-        console.log('Workbook created successfully.');
-    })
-    .catch((err) => {
-        console.error('Error creating workbook:', err);
-    });
+index="a" (source="a" or source="b") abcd 
+| rex field=_raw "expression:(?<expression>\w+)\s*-\s*(?<hfh>.*)" 
+| streamstats count by expression, source window=5m 
+| search count > 1 
+| table _time, source, expression, _raw, count
