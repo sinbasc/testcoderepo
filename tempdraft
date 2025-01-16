@@ -3,3 +3,11 @@ index="a" (source="a" or source="b") abcd
 | streamstats count by expression, source window=5m 
 | search count > 1 
 | table _time, source, expression, _raw, count
+
+
+index="a" (source="a" or source="b") abcd 
+| rex field=_raw "expression:(?<expression>\w+)\s*-\s*(?<hfh>.*)" 
+| bin span=5m _time 
+| stats count by _time, expression, source 
+| where count > 1 
+| table _time, source, expression, _raw, count
