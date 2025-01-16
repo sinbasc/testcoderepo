@@ -1,6 +1,31 @@
-Hi Team,
-I hope this message finds you well. My name is Abc, and I am an employee of XYZ Company with an employee ID EMPID. I am writing to initiate a claim for the chemotherapy treatment of my <relation>, which was administered from <start date> to <end date>. The total amount for the treatment is <amount>.
-Below are the details for the hospital: [Include Hospital Details Here]
-All the required documents will be submitted as per the claim form I have received. Please let me know if you need any additional information or documents to process this claim.
-Thank you for your assistance.
-Best regards, Abc
+const ExcelJS = require('exceljs');
+
+const workbook = new ExcelJS.Workbook();
+const worksheet = workbook.addWorksheet('Sheet 1');
+
+// Example text with URLs
+const text = "Here is a link to Google: https://www.google.com and another to GitHub: https://github.com";
+
+// Regular expression to find URLs
+const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+// Split the text into parts
+const parts = text.split(urlRegex);
+
+// Create richText array
+const richText = parts.map(part => {
+    if (urlRegex.test(part)) {
+        return { text: part, font: { underline: true, color: { argb: 'FF0000' } } }; // Style URLs
+    }
+    return { text: part }; // Plain text
+});
+
+worksheet.getCell('A1').value = { richText };
+
+workbook.xlsx.writeFile('styled_urls.xlsx')
+    .then(() => {
+        console.log('Workbook created successfully.');
+    })
+    .catch((err) => {
+        console.error('Error creating workbook:', err);
+    });
