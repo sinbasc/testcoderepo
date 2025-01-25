@@ -1,8 +1,10 @@
 fields @timestamp, @message
-| filter @message like /abcd-hfjfb-jfj-.*/
-| parse @message /abcd-hfjfb-jfj-(?<variable>[^\s]+)/
+| filter @message like /\/a\/b\/c\/.*/
+| parse @message /\/a\/b\/c\/(?<variable>[^\s]+)/
 | filter variable == "xyz"
 | sort @timestamp asc
-| stats count() as errorCount by bin(4m), @message
-| filter errorCount > 0 and @message like /error/
+| stats count() as errorCount by bin(4m)
+| filter errorCount > 0
+| fields @timestamp, @message
+| filter @message like /error/
 | filter timestamp < @timestamp + 240000 and timestamp > @timestamp
