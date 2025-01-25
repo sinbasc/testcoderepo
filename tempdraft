@@ -1,10 +1,14 @@
 fields @timestamp, @message
 | filter @message like /\/a\/b\/c\/.*/
 | parse @message /\/a\/b\/c\/(?<variable>[^\s]+)/
-| filter variable == "xyz"
 | sort @timestamp asc
-| stats count() as errorCount by bin(4m)
-| filter errorCount > 0
+| stats count() as matchCount by bin(4m)
+| filter matchCount > 0
+| filter variable == "xyz"
 | fields @timestamp, @message
 | filter @message like /error/
-| filter timestamp < @timestamp + 240000 and timestamp > @timestamp
+| sort @timestamp desc
+| limit 1
+| stats count() as errorCount by bin(4m)
+| filter errorCount == 0
+| filter not(@message like /\/a\/b\/c\/.*/)
