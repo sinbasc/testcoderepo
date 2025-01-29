@@ -1,14 +1,13 @@
-fields @timestamp, @message
-| filter @message like /\/a\/b\/c\/.*/
-| parse @message /\/a\/b\/c\/(?<variable>[^\s]+)/
-| sort @timestamp asc
-| stats count() as matchCount by bin(4m)
-| filter matchCount > 0
-| filter variable == "xyz"
-| fields @timestamp, @message
-| filter @message like /error/
-| sort @timestamp desc
-| limit 1
-| stats count() as errorCount by bin(4m)
-| filter errorCount == 0
-| filter not(@message like /\/a\/b\/c\/.*/)
+Problem Statement
+Manual Processes: Users had to recreate deals and upload documents in both System A and System B manually.
+Time-Consuming Tasks: Significant time spent on repetitive tasks, reducing overall productivity.
+Security Risks: Potential cyber attacks on downstream systems could expose private data through unsecured URLs.
+Solution
+Close Collaboration: Successful development through collaboration between Team A and Team B.
+Automated Data Transfer: Streamlined data transfer process between System A and System B.
+Security Enhancements: Document link generation process protected by CloudFront and WAF rules, ensuring secure access.
+Gains
+Process Efficiency: Reduced time spent on manual tasks by 40%, allowing users to focus on more valuable activities.
+Technical Security: Improved security measures to protect private data from unauthorized access.
+User Productivity: Enhanced user productivity by eliminating repetitive tasks, leading to more efficient workflow.
+Architectural Experience: Valuable experience in managing multiple enterprise-level interactions and data flows.
