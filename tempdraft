@@ -1,12 +1,9 @@
- Problem Statement
-Time-Consuming Tasks: Users were spending a significant amount of time on manual processes, such as recreating deals and uploading documents in both System A and System B. These repetitive tasks not only reduced overall productivity but also diverted attention from more valuable activities, hindering efficiency and growth.
-Solution
-Automated Sync Process: Automated the synchronization process between systems through close collaboration between multiple squads.
-Close Collaboration: Successful development through collaboration between Team A and Team B.
-Automated Data Transfer: Streamlined data transfer process between System A and System B.
-Security Enhancements: Document link generation process protected by CloudFront and WAF rules, ensuring secure access.
-Gains
-Process Efficiency: Due to the automated process, users' time spent on repetitive tasks is eliminated, resulting in an overall 40% gain.
-Technical Security: Improved security measures to protect private data from unauthorized access.
-User Productivity: Enhanced user productivity by eliminating repetitive tasks, leading to a more efficient workflow.
-Architectural Experience: Valuable experience in managing multiple enterprise-level interactions and data flows.
+db.collectionA.mapReduce(
+   function() {
+       for (var key in this) { emit(key, null); }
+   },
+   function(key, stuff) { return null; },
+   { out: "uniqueKeys" }
+);
+
+db.uniqueKeys.distinct("_id");
