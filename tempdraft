@@ -1,4 +1,4 @@
-db.collectionA.mapReduce(
+db.getCollection("collectionA").mapReduce(
    function() {
        for (var key in this) { emit(key, null); }
    },
@@ -6,4 +6,4 @@ db.collectionA.mapReduce(
    { out: "uniqueKeys" }
 );
 
-db.uniqueKeys.distinct("_id");
+db.getCollection("uniqueKeys").distinct("_id");
