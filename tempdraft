@@ -1,9 +1,2 @@
-db.getCollection("collectionA").mapReduce(
-   function() {
-       for (var key in this) { emit(key, null); }
-   },
-   function(key, stuff) { return null; },
-   { out: "uniqueKeys" }
-);
-
-db.getCollection("uniqueKeys").distinct("_id");
+To achieve our objective, we transferred the data from warehouse systems to delivery systems, and subsequently to PRH, using their APIs. We leveraged the existing synchronization between the warehouse and delivery systems, while taking additional steps to ensure that the private data we dealt with in this initiative is not visible on the public platform hosted by the delivery system.
+Given the critical nature of handling private documents, we have implemented a document link generation process protected by AWS CloudFront and WAF rules. This security measure ensures that the URLs cannot be accessed from unauthorized networks, thereby safeguarding our private data in the event of a cyber-attack.
