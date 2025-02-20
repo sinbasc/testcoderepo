@@ -1,58 +1,39 @@
-import { Component, OnInit } from '@angular/core';
-import { FileService } from './file.service';
+// download.component.ts
+import { Component } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
-  selector: 'app-file-download',
-  templateUrl: './file-download.component.html',
-  styleUrls: ['./file-download.component.css']
+  selector: 'app-download',
+  templateUrl: './download.component.html'
 })
-export class FileDownloadComponent implements OnInit {
-  isDownloadButtonEnabled: boolean = false;
-  fileUrl: string = 'https://your-cloudfront-signed-url';
-
-  constructor(private fileService: FileService) {}
-
-  ngOnInit(): void {
-    this.checkFile();
-  }
-
-  checkFile(): void {
-    this.fileService.checkFileAvailability(this.fileUrl).subscribe(
-      (response) => {
-        if (response.status === 200) {
-          this.isDownloadButtonEnabled = true;
-        }
-      },
-      (error) => {
-        console.log('Error checking file availability:', error);
-        // Retry mechanism can be added here if needed
-        setTimeout(() => this.checkFile(), 5000); // Retry after 5 seconds
-      }
-    );
-  }
-
-  downloadFile(): void {
-    window.location.href = this.fileUrl;
-  }
-}
-
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
-
-@Injectable({
-  providedIn: 'root'
-})
-export class FileService {
+export class DownloadComponent {
   constructor(private http: HttpClient) {}
 
-  checkFileAvailability(url: string): Observable<HttpResponse<any>> {
-    return this.http.get(url, { observe: 'response' }).pipe(
-      catchError((error) => {
-        return throwError(error);
-      })
-    );
+  // Function to download the file blob from the signed URL
+  downloadFile() {
+    const signedUrl = 'YOUR_SIGNED_URL_HERE'; // Replace with your signed URL
+
+    this.http.get(signedUrl, { responseType: 'blob' }).subscribe(blob => {
+      // Create a link element and set the URL using the blob
+      const downloadLink = document.createElement('a');
+      const url = window.URL.createObjectURL(blob);
+      downloadLink.href = url;
+
+      // Extract the filename from the Content-Disposition header
+      const contentDisposition = blob.type; // Placeholder to simulate Content-Disposition header
+      const fileName = this.getFileNameFromContentDisposition(contentDisposition) || 'downloaded_file.xls'; // Fallback file name
+
+      downloadLink.download = fileName;
+      downloadLink.click();
+
+      // Clean up the URL
+      window.URL.revokeObjectURL(url);
+    });
+  }
+
+  // Function to extract the file name from the Content-Disposition header
+  getFileNameFromContentDisposition(contentDisposition: string): string {
+    const match = contentDisposition && contentDisposition.match(/filename="?(.+)"?/);
+    return match ? match[1] : null;
   }
 }
-
