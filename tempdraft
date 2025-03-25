@@ -19,7 +19,7 @@ def generate_policy(principal_id, effect, resource):
 def lambda_handler(event, context):
     # Extract cookies from the event
     headers = event.get("headers", {})
-    cookies = headers.get("Cookie", "")  # e.g., "token=my-token; other=val"
+    cookies = headers.get("Cookie", "")  # e.g., "ms-sso=abc123; other=val" or "ms-sso2=xyz789"
 
     # Parse cookies into a dictionary
     cookie_dict = {}
@@ -29,10 +29,9 @@ def lambda_handler(event, context):
                 key, value = cookie.strip().split("=", 1)
                 cookie_dict[key] = value
 
-    # Check if token exists in cookies (for now, just presence, no validation)
-    token = cookie_dict.get("token", "")
-    if not token:
-        raise Exception("Unauthorized: Token missing in cookies")
+    # Check if either 'ms-sso' or 'ms-sso2' key exists in cookies
+    if "ms-sso" not in cookie_dict and "ms-sso2" not in cookie_dict:
+        raise Exception("Unauthorized: Neither ms-sso nor ms-sso2 cookie found")
 
-    # Token exists, allow the request to proceed
+    # At least one of the keys exists, allow the request to proceed
     return generate_policy("user", "Allow", event["methodArn"])
