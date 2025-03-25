@@ -17,9 +17,9 @@ def generate_policy(principal_id, effect, resource):
     }
 
 def lambda_handler(event, context):
-    # Extract cookies from the event
-    headers = event.get("headers", {})
-    cookies = headers.get("Cookie", "")  # e.g., "ms-sso=abc123; other=val" or "ms-sso2=xyz789"
+    # Extract headers from the event (Request payload type)
+    headers = event.get("headers", {}) or {}
+    cookies = headers.get("Cookie", "")  # e.g., "ms-sso=abc123; other=val"
 
     # Parse cookies into a dictionary
     cookie_dict = {}
