@@ -1,39 +1,38 @@
-// download.component.ts
-import { Component } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import json
 
-@Component({
-  selector: 'app-download',
-  templateUrl: './download.component.html'
-})
-export class DownloadComponent {
-  constructor(private http: HttpClient) {}
+def generate_policy(principal_id, effect, resource):
+    """Generate an IAM policy for API Gateway."""
+    return {
+        "principalId": principal_id,
+        "policyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Action": "execute-api:Invoke",
+                    "Effect": effect,
+                    "Resource": resource
+                }
+            ]
+        }
+    }
 
-  // Function to download the file blob from the signed URL
-  downloadFile() {
-    const signedUrl = 'YOUR_SIGNED_URL_HERE'; // Replace with your signed URL
+def lambda_handler(event, context):
+    # Extract cookies from the event
+    headers = event.get("headers", {})
+    cookies = headers.get("Cookie", "")  # e.g., "token=my-token; other=val"
 
-    this.http.get(signedUrl, { responseType: 'blob' }).subscribe(blob => {
-      // Create a link element and set the URL using the blob
-      const downloadLink = document.createElement('a');
-      const url = window.URL.createObjectURL(blob);
-      downloadLink.href = url;
+    # Parse cookies into a dictionary
+    cookie_dict = {}
+    if cookies:
+        for cookie in cookies.split(";"):
+            if "=" in cookie:
+                key, value = cookie.strip().split("=", 1)
+                cookie_dict[key] = value
 
-      // Extract the filename from the Content-Disposition header
-      const contentDisposition = blob.type; // Placeholder to simulate Content-Disposition header
-      const fileName = this.getFileNameFromContentDisposition(contentDisposition) || 'downloaded_file.xls'; // Fallback file name
+    # Check if token exists in cookies (for now, just presence, no validation)
+    token = cookie_dict.get("token", "")
+    if not token:
+        raise Exception("Unauthorized: Token missing in cookies")
 
-      downloadLink.download = fileName;
-      downloadLink.click();
-
-      // Clean up the URL
-      window.URL.revokeObjectURL(url);
-    });
-  }
-
-  // Function to extract the file name from the Content-Disposition header
-  getFileNameFromContentDisposition(contentDisposition: string): string {
-    const match = contentDisposition && contentDisposition.match(/filename="?(.+)"?/);
-    return match ? match[1] : null;
-  }
-}
+    # Token exists, allow the request to proceed
+    return generate_policy("user", "Allow", event["methodArn"])
