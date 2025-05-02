@@ -1,17 +1,57 @@
-# Use AWS Lambda Node.js 20 base image
-FROM public.ecr.aws/lambda/nodejs:20
+# Use the official Directus 11.6.1 image
+FROM directus/directus:11.6.1
 
-# Set working directory to Lambda task root (/var/task)
-WORKDIR ${LAMBDA_TASK_ROOT}
+# Set working directory
+WORKDIR /directus
 
-# Copy package.json and package-lock.json (if exists) for dependency installation
-COPY package*.json ./
+# Install aws-sdk for S3 storage
+RUN npm install aws-sdk
 
-# Install dependencies
-RUN npm install
+# Copy Aurora SSL certificate
+COPY rds-combined-ca-bundle.pem /directus/rds-combined-ca-bundle.pem
 
-# Copy all application code (e.g., index.js, src/, etc.) from project/server
-COPY . .
+# Copy custom extensions (uncomment if needed)
+# COPY extensions /directus/extensions
 
-# Command to run the Lambda handler (adjust 'index.handler' if your handler is different)
-CMD ["index.handler"]
+# Expose Directus port
+EXPOSE 8055
+
+# Set environment variables
+ENV NODE_ENV=production \
+    PUBLIC_URL=https://your-directus-domain.com \
+    DB_CLIENT=mysql \
+    DB_HOST=your-aurora-cluster-endpoint \
+    DB_PORT=3306 \
+    DB_DATABASE=directus \
+    DB_USER=your-db-user \
+    DB_PASSWORD=your-db-password \
+    DB_SSL=true \
+    DB_SSL_CA=/directus/rds-combined-ca-bundle.pem \
+    DB_CONNECTION_TIMEOUT=30000 \
+    DB_POOL_MAX=20 \
+    DB_POOL_MIN=2 \
+    DB_POOL_ACQUIRE=30000 \
+    DB_POOL_IDLE=10000 \
+    SECRET=your-secure-key \
+    ADMIN_EMAIL=admin@example.com \
+    ADMIN_PASSWORD=your-admin-password \
+    EMAIL_TRANSPORT=smtp \
+    EMAIL_SMTP_HOST=smtp.example.com \
+    EMAIL_SMTP_PORT=587 \
+    EMAIL_SMTP_USER=user@example.com \
+    EMAIL_SMTP_PASSWORD=your-smtp-password \
+    EMAIL_FROM=no-reply@yourdomain.com \
+    STORAGE_LOCATIONS=s3 \
+    STORAGE_S3_DRIVER=s3 \
+    STORAGE_S3_KEY=your-access-key \
+    STORAGE_S3_SECRET=your-secret-key \
+    STORAGE_S3_REGION=us-east-1 \
+    STORAGE_S3_BUCKET=your-bucket \
+    HASH_MEMORY_COST=65536 \
+    HASH_TIME_COST=3 \
+    HASH_PARALLELISM=1 \
+    # Uncomment for extensions
+    # EXTENSIONS_PATH=/directus/extensions
+
+# Run Directus
+CMD ["npx", "directus", "start"]
