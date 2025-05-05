@@ -26,11 +26,10 @@ RUN mkdir -p /app/certs && \
     fi && \
     chmod 644 /app/certs/rds-combined-ca-bundle.pem
 
-# Install additional Node.js dependencies (aws-sdk for S3 storage)
-RUN npm install aws-sdk
-
-# Switch back to the non-root user
+# Install Node.js dependencies (aws-sdk for S3 storage) as node user
 USER node
+RUN npm cache clean --force && \
+    npm install aws-sdk@2.1469.0 --no-save --loglevel=verbose
 
 # Expose the Directus port
 EXPOSE 8055
