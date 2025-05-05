@@ -1,15 +1,27 @@
 Dockerfile 
 
+
 FROM directus/directus:11.6.1
 
-# Install system dependencies (curl for certificate download)
+# Install system dependencies (try apt-get, fallback to wget if needed)
 USER root
-RUN apt-get update && \
-    apt-get install -y curl && \
-    rm -rf /var/lib/apt/lists/*
+RUN if command -v apt-get >/dev/null; then \
+        apt-get update && \
+        apt-get install -y curl && \
+        rm -rf /var/lib/apt/lists/*; \
+    else \
+        apt-get update && \
+        apt-get install -y wget && \
+        rm -rf /var/lib/apt/lists/*; \
+    fi
 
-# Download the AWS RDS CA certificate
-RUN curl -o /app/certs/rds-combined-ca-bundle.pem https://s3.amazonaws.com/rds-downloads/rds-combined-ca-bundle.pem && \
+# Download the AWS RDS CA certificate (use curl if available, else wget)
+RUN mkdir -p /app/certs && \
+    if command -v curl >/dev/null; then \
+        curl -o /app/certs/rds-combined-ca-bundle.pem https://s3.amazonaws.com/rds-downloads/rds-combined-ca-bundle.pem; \
+    else \
+        wget -O /app/certs/rds-combined-ca-bundle.pem https://s3.amazonaws.com/rds-downloads/rds-combined-ca-bundle.pem; \
+    fi && \
     chmod 644 /app/certs/rds-combined-ca-bundle.pem
 
 # Install additional Node.js dependencies (aws-sdk for S3 storage)
@@ -23,8 +35,6 @@ EXPOSE 8055
 
 # Start Directus with the standard command
 CMD ["npx", "directus", "start"]
-
-
 
 Env
 
