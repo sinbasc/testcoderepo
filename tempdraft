@@ -1,57 +1,65 @@
-# Use the official Directus 11.6.1 image
+Dockerfile 
+
 FROM directus/directus:11.6.1
 
-# Set working directory
-WORKDIR /directus
+# Install system dependencies (curl for certificate download)
+USER root
+RUN apt-get update && \
+    apt-get install -y curl && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install aws-sdk for S3 storage
+# Download the AWS RDS CA certificate
+RUN curl -o /app/certs/rds-combined-ca-bundle.pem https://s3.amazonaws.com/rds-downloads/rds-combined-ca-bundle.pem && \
+    chmod 644 /app/certs/rds-combined-ca-bundle.pem
+
+# Install additional Node.js dependencies (aws-sdk for S3 storage)
 RUN npm install aws-sdk
 
-# Copy Aurora SSL certificate
-COPY rds-combined-ca-bundle.pem /directus/rds-combined-ca-bundle.pem
+# Switch back to the non-root user
+USER node
 
-# Copy custom extensions (uncomment if needed)
-# COPY extensions /directus/extensions
-
-# Expose Directus port
+# Expose the Directus port
 EXPOSE 8055
 
-# Set environment variables
-ENV NODE_ENV=production \
-    PUBLIC_URL=https://your-directus-domain.com \
-    DB_CLIENT=mysql \
-    DB_HOST=your-aurora-cluster-endpoint \
-    DB_PORT=3306 \
-    DB_DATABASE=directus \
-    DB_USER=your-db-user \
-    DB_PASSWORD=your-db-password \
-    DB_SSL=true \
-    DB_SSL_CA=/directus/rds-combined-ca-bundle.pem \
-    DB_CONNECTION_TIMEOUT=30000 \
-    DB_POOL_MAX=20 \
-    DB_POOL_MIN=2 \
-    DB_POOL_ACQUIRE=30000 \
-    DB_POOL_IDLE=10000 \
-    SECRET=your-secure-key \
-    ADMIN_EMAIL=admin@example.com \
-    ADMIN_PASSWORD=your-admin-password \
-    EMAIL_TRANSPORT=smtp \
-    EMAIL_SMTP_HOST=smtp.example.com \
-    EMAIL_SMTP_PORT=587 \
-    EMAIL_SMTP_USER=user@example.com \
-    EMAIL_SMTP_PASSWORD=your-smtp-password \
-    EMAIL_FROM=no-reply@yourdomain.com \
-    STORAGE_LOCATIONS=s3 \
-    STORAGE_S3_DRIVER=s3 \
-    STORAGE_S3_KEY=your-access-key \
-    STORAGE_S3_SECRET=your-secret-key \
-    STORAGE_S3_REGION=us-east-1 \
-    STORAGE_S3_BUCKET=your-bucket \
-    HASH_MEMORY_COST=65536 \
-    HASH_TIME_COST=3 \
-    HASH_PARALLELISM=1 \
-    # Uncomment for extensions
-    # EXTENSIONS_PATH=/directus/extensions
-
-# Run Directus
+# Start Directus with the standard command
 CMD ["npx", "directus", "start"]
+
+
+
+Env
+
+# General Directus configuration
+PUBLIC_URL="https://your-directus-instance.com"
+SECRET="your-secure-key"
+
+# Database configuration (Aurora MySQL)
+DB_CLIENT="mysql"
+DB_HOST="your-aurora-cluster-endpoint"
+DB_PORT="3306"
+DB_DATABASE="directus"
+DB_USER="username"
+DB_PASSWORD="password"
+DB_SSL="true"
+DB_SSL__CA="/app/certs/rds-combined-ca-bundle.pem"
+
+# Email configuration (for password reset emails)
+EMAIL_TRANSPORT="smtp"
+EMAIL_SMTP_HOST="smtp.example.com"
+EMAIL_SMTP_PORT="587"
+EMAIL_SMTP_USER="user@example.com"
+EMAIL_SMTP_PASSWORD="yourpassword"
+EMAIL_FROM="no-reply@yourdomain.com"
+
+# S3 storage configuration (for directus_files migration)
+STORAGE_LOCATIONS="s3"
+STORAGE_S3_DRIVER="s3"
+STORAGE_S3_KEY="your-access-key"
+STORAGE_S3_SECRET="your-secret-key"
+STORAGE_S3_REGION="us-east-1"
+STORAGE_S3_BUCKET="your-bucket"
+
+# Performance and debugging
+LOG_LEVEL="debug"
+HASH_MEMORY_COST="65536"
+HASH_TIME_COST="3"
+HASH_PARALLELISM="1"
