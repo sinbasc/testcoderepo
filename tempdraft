@@ -23,11 +23,6 @@ RUN mkdir -p /app/certs && \
     fi && \
     chmod 644 /app/certs/rds-combined-ca-bundle.pem
 
-# Set up npm environment and install Node.js dependencies (aws-sdk for S3 storage)
-RUN npm init -y && \
-    npm cache clean --force && \
-    npm install aws-sdk@2.1469.0 --loglevel=verbose
-
 # Switch to the non-root user
 USER node
 
