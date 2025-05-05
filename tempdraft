@@ -1,6 +1,5 @@
 Dockerfile 
 
-
 FROM directus/directus:11.6.1
 
 # Install system dependencies (try curl, fallback to wget)
@@ -26,16 +25,19 @@ RUN mkdir -p /app/certs && \
     fi && \
     chmod 644 /app/certs/rds-combined-ca-bundle.pem
 
-# Install Node.js dependencies (aws-sdk for S3 storage) as node user
-USER node
+# Set up npm cache and install Node.js dependencies (aws-sdk for S3 storage)
 RUN npm cache clean --force && \
-    npm install aws-sdk@2.1469.0 --no-save --loglevel=verbose
+    mkdir -p /home/node/.npm && \
+    chown node:node /home/node/.npm
+USER node
+RUN npm install aws-sdk@2.1469.0 --no-save --loglevel=verbose
 
 # Expose the Directus port
 EXPOSE 8055
 
 # Start Directus with the standard command
 CMD ["npx", "directus", "start"]
+
 
 Env
 
