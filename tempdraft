@@ -29,15 +29,5 @@ USER node
 # Expose the Directus port
 EXPOSE 8055
 
-# Start Directus with the standard command
-CMD ["npx", "directus", "start"]
-
-
-draft
-
-Sprint Goal and Milestone Overview
-For the upcoming sprint, our sprint goal is to deliver a critical product requirement, advance non-production unit testing and deployment readiness for the CMS upgrade, and make measurable progress on our technical debt reduction by migrating secrets to AWS Secrets Manager for Python Lambda functions. This focused effort ensures we meet immediate product needs, enhance system stability, and align with our quarterly technical objectives.
-Key Tickets and Their Purpose:
-1.  Ticket 4085 (Product Requirement): This ticket is a high-priority product requirement that must be completed by the end of the sprint to meet stakeholder expectations and deliver essential functionality to users.
-2.  Tickets 4138, 2813, 2138, and 2159 (CMS Upgrade): These tickets are critical for non-production unit testing and establishing a deployment plan for the CMS upgrade. By completing these, we ensure timely development and readiness for QA, laying a robust foundation for a successful upgrade.
-3.  Tickets 3969 and 3970 (Technical Debt): These tickets focus on migrating all secrets to AWS Secrets Manager for Python Lambda functions, contributing to our quarterly technical debt reduction goal. This work enhances security and maintainability of our infrastructure.
+# Run bootstrap and start Directus
+CMD ["/bin/sh", "-c", "npx directus bootstrap && npx directus start"]
