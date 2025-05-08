@@ -26,11 +26,8 @@ RUN mkdir -p /app/certs && \
 # Switch to the non-root user
 USER node
 
-# Set Directus port to 80
-ENV PORT=80
-
-# Expose the new port
-EXPOSE 80
+# Expose the default Directus port
+EXPOSE 8055
 
 # Run bootstrap and start Directus
 CMD ["/bin/sh", "-c", "npx directus bootstrap && npx directus start"]
