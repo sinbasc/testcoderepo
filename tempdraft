@@ -1,33 +1,183 @@
-FROM directus/directus:11.6.1
+service: directus-fargate
 
-# Install system dependencies (try curl, fallback to wget)
-USER root
-RUN if command -v apt-get >/dev/null; then \
-        apt-get update && \
-        apt-get install -y curl && \
-        rm -rf /var/lib/apt/lists/*; \
-    elif command -v apk >/dev/null; then \
-        apk add --no-cache curl; \
-    else \
-        apt-get update && \
-        apt-get install -y wget && \
-        rm -rf /var/lib/apt/lists/*; \
-    fi
+frameworkVersion: '>=3.0.0'
 
-# Download the AWS RDS CA certificate (use curl if available, else wget)
-RUN mkdir -p /app/certs && \
-    if command -v curl >/dev/null; then \
-        curl -o /app/certs/rds-combined-ca-bundle.pem https://s3.amazonaws.com/rds-downloads/rds-combined-ca-bundle.pem; \
-    else \
-        wget -O /app/certs/rds-combined-ca-bundle.pem https://s3.amazonaws.com/rds-downloads/rds-combined-ca-bundle.pem; \
-    fi && \
-    chmod 644 /app/certs/rds-combined-ca-bundle.pem
+provider:
+  name: aws
+  region: us-east-1 # Replace with your AWS region
+  stage: ${opt:stage, 'dev'}
+  deploymentBucket:
+    name: ${self:custom.artifactBucket} # Replace with your S3 bucket for Serverless artifacts
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - 'ecs:*'
+            - 'ecr:GetAuthorizationToken'
+            - 'ecr:BatchGetImage'
+            - 'ecr:GetDownloadUrlForLayer'
+            - 'logs:CreateLogStream'
+            - 'logs:PutLogEvents'
+            - 'elasticloadbalancing:*'
+            - 'ec2:Describe*'
+            - 'iam:PassRole'
+          Resource: '*'
 
-# Switch to the non-root user
-USER node
+plugins:
+  - serverless-fargate-tasks
 
-# Expose the default Directus port
-EXPOSE 8055
+custom:
+  artifactBucket: your-artifact-bucket-name # Replace with your S3 bucket name
+  vpc:
+    securityGroupIds:
+      - sg-xxxxxxxxxxxxxxxxx # Replace with your security group ID
+    subnetIds:
+      - subnet-xxxxxxxxxxxxxxxxx # Private subnet 1
+      - subnet-xxxxxxxxxxxxxxxxx # Private subnet 2
+  publicSubnetIds:
+    - subnet-yyyyyyyyyyyyyyyyy # Public subnet 1
+    - subnet-yyyyyyyyyyyyyyyyy # Public subnet 2
+  accountId: 'your-account-id' # Replace with your AWS account ID
+  albCertificateArn: 'arn:aws:acm:us-east-1:your-account-id:certificate/zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz' # Replace with your ACM certificate ARN
+  fargate:
+    name: directus-fargate
+    environment:
+      # Directus environment variables (adjust as needed)
+      DB_CLIENT: 'pg' # Example: PostgreSQL
+      DB_HOST: 'your-rds-endpoint' # Replace with your database endpoint
+      DB_PORT: '5432'
+      DB_DATABASE: 'directus'
+      DB_USER: 'directus'
+      DB_PASSWORD: 'your-db-password' # Use Secrets Manager in production
+      ADMIN_EMAIL: 'admin@example.com'
+      ADMIN_PASSWORD: 'your-admin-password' # Use Secrets Manager in production
+      SECRET: 'your-random-secret' # Replace with a secure random value
+      WEBSOCKETS_ENABLED: 'true'
 
-# Run bootstrap and start Directus
-CMD ["/bin/sh", "-c", "npx directus bootstrap && npx directus start"]
+resources:
+  Resources:
+    # Security Group for ALB
+    ALBSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: Security group for Directus ALB
+        VpcId: vpc-xxxxxxxxxxxxxxxxx # Replace with your VPC ID
+        SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: 443
+            ToPort: 443
+            CidrIp: 0.0.0.0/0
+        SecurityGroupEgress:
+          - IpProtocol: -1
+            FromPort: 0
+            ToPort: 0
+            CidrIp: 0.0.0.0/0
+
+    # Security Group for Fargate Tasks
+    FargateSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: Security group for Directus Fargate tasks
+        VpcId: vpc-xxxxxxxxxxxxxxxxx # Replace with your VPC ID
+        SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: 8055
+            ToPort: 8055
+            SourceSecurityGroupId: !Ref ALBSecurityGroup
+        SecurityGroupEgress:
+          - IpProtocol: -1
+            FromPort: 0
+            ToPort: 0
+            CidrIp: 0.0.0.0/0
+
+    # Application Load Balancer
+    ApplicationLoadBalancer:
+      Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+      Properties:
+        Subnets: ${self:custom.publicSubnetIds}
+        SecurityGroups:
+          - !Ref ALBSecurityGroup
+        Scheme: internet-facing
+        Type: application
+
+    # Target Group for Directus
+    DirectusTargetGroup:
+      Type: AWS::ElasticLoadBalancingV2::TargetGroup
+      Properties:
+        VpcId: vpc-xxxxxxxxxxxxxxxxx # Replace with your VPC ID
+        Port: 8055
+        Protocol: HTTP
+        TargetType: ip
+        HealthCheckPath: /server/ping
+        HealthCheckProtocol: HTTP
+        HealthyThresholdCount: 2
+        UnhealthyThresholdCount: 5
+        HealthCheckTimeoutSeconds: 5
+        HealthCheckIntervalSeconds: 30
+        Matcher:
+          HttpCode: '200'
+
+    # ALB Listener (HTTPS on port 443)
+    ALBListener:
+      Type: AWS::ElasticLoadBalancingV2::Listener
+      Properties:
+        LoadBalancerArn: !Ref ApplicationLoadBalancer
+        Port: 443
+        Protocol: HTTPS
+        Certificates:
+          - CertificateArn: ${self:custom.albCertificateArn}
+        DefaultActions:
+          - Type: forward
+            TargetGroupArn: !Ref DirectusTargetGroup
+
+    # CloudWatch Log Group
+    DirectusLogGroup:
+      Type: AWS::Logs::LogGroup
+      Properties:
+        LogGroupName: /ecs/directus
+        RetentionInDays: 7
+
+    # ECS Task Execution Role
+    ECSTaskExecutionRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: ecs-tasks.amazonaws.com
+              Action: sts:AssumeRole
+        ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+
+  Outputs:
+    ALBEndpoint:
+      Description: The DNS name of the ALB
+      Value: !GetAtt ApplicationLoadBalancer.DNSName
+
+functions:
+  directus:
+    fargate:
+      name: directus-task
+      image: ${self:custom.accountId}.dkr.ecr.${self:provider.region}.amazonaws.com/directus:latest # Replace 'directus' with your ECR repository name
+      cpu: 256
+      memory: 512
+      vpc:
+        securityGroupIds:
+          - !Ref FargateSecurityGroup
+        subnetIds: ${self:custom.vpc.subnetIds}
+      environment: ${self:custom.fargate.environment}
+      logConfiguration:
+        logDriver: awslogs
+        options:
+          awslogs-group: /ecs/directus
+          awslogs-region: ${self:provider.region}
+          awslogs-stream-prefix: directus
+      service:
+        desiredCount: 1
+        loadBalancers:
+          - targetGroupArn: !Ref DirectusTargetGroup
+            containerName: directus
+            containerPort: 8055
