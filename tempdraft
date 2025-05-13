@@ -24,9 +24,6 @@ provider:
             - 'iam:PassRole'
           Resource: '*'
 
-plugins:
-  - serverless-fargate-tasks
-
 custom:
   artifactBucket: your-artifact-bucket-name # Replace with your S3 bucket name
   vpc:
@@ -40,8 +37,7 @@ custom:
     - subnet-yyyyyyyyyyyyyyyyy # Public subnet 2
   accountId: 'your-account-id' # Replace with your AWS account ID
   albCertificateArn: 'arn:aws:acm:us-east-1:your-account-id:certificate/zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz' # Replace with your ACM certificate ARN
-  fargate:
-    name: directus-fargate
+  directus:
     environment:
       # Directus environment variables (adjust as needed)
       DB_CLIENT: 'pg' # Example: PostgreSQL
@@ -57,6 +53,83 @@ custom:
 
 resources:
   Resources:
+    # ECS Cluster
+    ECSCluster:
+      Type: AWS::ECS::Cluster
+      Properties:
+        ClusterName: directus-cluster-${self:provider.stage}
+
+    # ECS Task Definition
+    DirectusTaskDefinition:
+      Type: AWS::ECS::TaskDefinition
+      Properties:
+        Family: directus-task
+        Cpu: '256'
+        Memory: '512'
+        NetworkMode: awsvpc
+        RequiresCompatibilities:
+          - FARGATE
+        ExecutionRoleArn: !Ref ECSTaskExecutionRole
+        TaskRoleArn: !Ref ECSTaskRole
+        ContainerDefinitions:
+          - Name: directus
+            Image: ${self:custom.accountId}.dkr.ecr.${self:provider.region}.amazonaws.com/directus:latest # Replace 'directus' with your ECR repository name
+            Essential: true
+            PortMappings:
+              - ContainerPort: 8055
+                HostPort: 8055
+                Protocol: tcp
+            Environment:
+              - Name: DB_CLIENT
+                Value: ${self:custom.directus.environment.DB_CLIENT}
+              - Name: DB_HOST
+                Value: ${self:custom.directus.environment.DB_HOST}
+              - Name: DB_PORT
+                Value: ${self:custom.directus.environment.DB_PORT}
+              - Name: DB_DATABASE
+                Value: ${self:custom.directus.environment.DB_DATABASE}
+              - Name: DB_USER
+                Value: ${self:custom.directus.environment.DB_USER}
+              - Name: DB_PASSWORD
+                Value: ${self:custom.directus.environment.DB_PASSWORD}
+              - Name: ADMIN_EMAIL
+                Value: ${self:custom.directus.environment.ADMIN_EMAIL}
+              - Name: ADMIN_PASSWORD
+                Value: ${self:custom.directus.environment.ADMIN_PASSWORD}
+              - Name: SECRET
+                Value: ${self:custom.directus.environment.SECRET}
+              - Name: WEBSOCKETS_ENABLED
+                Value: ${self:custom.directus.environment.WEBSOCKETS_ENABLED}
+            LogConfiguration:
+              LogDriver: awslogs
+              Options:
+                awslogs-group: !Ref DirectusLogGroup
+                awslogs-region: ${self:provider.region}
+                awslogs-stream-prefix: directus
+
+    # ECS Service
+    DirectusService:
+      Type: AWS::ECS::Service
+      Properties:
+        Cluster: !Ref ECSCluster
+        ServiceName: directus-service-${self:provider.stage}
+        TaskDefinition: !Ref DirectusTaskDefinition
+        DesiredCount: 1
+        LaunchType: FARGATE
+        NetworkConfiguration:
+          AwsvpcConfiguration:
+            AssignPublicIp: DISABLED
+            Subnets: ${self:custom.vpc.subnetIds}
+            SecurityGroups:
+              - !Ref FargateSecurityGroup
+        LoadBalancers:
+          - ContainerName: directus
+            ContainerPort: 8055
+            TargetGroupArn: !Ref DirectusTargetGroup
+        DeploymentConfiguration:
+          MaximumPercent: 200
+          MinimumHealthyPercent: 50
+
     # Security Group for ALB
     ALBSecurityGroup:
       Type: AWS::EC2::SecurityGroup
@@ -88,7 +161,7 @@ resources:
         SecurityGroupEgress:
           - IpProtocol: -1
             FromPort: 0
-            ToPort: 0
+            ToPort: 0ස1:1
             CidrIp: 0.0.0.0/0
 
     # Application Load Balancer
@@ -152,32 +225,29 @@ resources:
         ManagedPolicyArns:
           - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
 
+    # ECS Task Role
+    ECSTaskRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: ecs-tasks.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: DirectusTaskPolicy
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - 'logs:CreateLogStream'
+                    - 'logs:PutLogEvents'
+                  Resource: !GetAtt DirectusLogGroup.Arn
+
   Outputs:
     ALBEndpoint:
       Description: The DNS name of the ALB
       Value: !GetAtt ApplicationLoadBalancer.DNSName
-
-functions:
-  directus:
-    fargate:
-      name: directus-task
-      image: ${self:custom.accountId}.dkr.ecr.${self:provider.region}.amazonaws.com/directus:latest # Replace 'directus' with your ECR repository name
-      cpu: 256
-      memory: 512
-      vpc:
-        securityGroupIds:
-          - !Ref FargateSecurityGroup
-        subnetIds: ${self:custom.vpc.subnetIds}
-      environment: ${self:custom.fargate.environment}
-      logConfiguration:
-        logDriver: awslogs
-        options:
-          awslogs-group: /ecs/directus
-          awslogs-region: ${self:provider.region}
-          awslogs-stream-prefix: directus
-      service:
-        desiredCount: 1
-        loadBalancers:
-          - targetGroupArn: !Ref DirectusTargetGroup
-            containerName: directus
-            containerPort: 8055
