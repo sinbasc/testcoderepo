@@ -22,7 +22,10 @@ provider:
             - 'elasticloadbalancing:*'
             - 'ec2:Describe*'
             - 'iam:PassRole'
-          Resource: '*'
+            - 'application-autoscaling:*'
+            - 'cloudwatch:PutMetricData'
+            - 'cloudwatch:GetMetricStatistics'
+          Resource: '*> '*'
 
 custom:
   artifactBucket: your-artifact-bucket-name # Replace with your S3 bucket name
@@ -161,7 +164,7 @@ resources:
         SecurityGroupEgress:
           - IpProtocol: -1
             FromPort: 0
-            ToPort: 0ස1:1
+            ToPort: 0
             CidrIp: 0.0.0.0/0
 
     # Application Load Balancer
@@ -201,6 +204,23 @@ resources:
         Certificates:
           - CertificateArn: ${self:custom.albCertificateArn}
         DefaultActions:
+          - Type: fixed-response
+            FixedResponseConfig:
+              ContentType: text/plain
+              MessageBody: 'Not Found'
+              StatusCode: '404'
+
+    # ALB Listener Rule for / path
+    ALBListenerRule:
+      Type: AWS::ElasticLoadBalancingV2::ListenerRule
+      Properties:
+        ListenerArn: !Ref ALBListener
+        Priority: 1
+        Conditions:
+          - Field: path-pattern
+            Values:
+              - '/'
+        Actions:
           - Type: forward
             TargetGroupArn: !Ref DirectusTargetGroup
 
@@ -246,6 +266,56 @@ resources:
                     - 'logs:CreateLogStream'
                     - 'logs:PutLogEvents'
                   Resource: !GetAtt DirectusLogGroup.Arn
+
+    # IAM Role for Auto-Scaling
+    ECSAutoScalingRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: application-autoscaling.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: ECSAutoScalingPolicy
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - 'ecs:DescribeServices'
+                    - 'ecs:UpdateService'
+                    - 'cloudwatch:PutMetricAlarm'
+                    - 'cloudwatch:DescribeAlarms'
+                    - 'cloudwatch:DeleteAlarms'
+                  Resource: '*'
+
+    # Scalable Target for ECS Service
+    ECSScalableTarget:
+      Type: AWS::ApplicationAutoScaling::ScalableTarget
+      Properties:
+        MaxCapacity: 4 # Maximum number of tasks
+        MinCapacity: 1 # Minimum number of tasks
+        ResourceId: !Sub 'service/${ECSCluster}/${DirectusService.Name}'
+        RoleARN: !GetAtt ECSAutoScalingRole.Arn
+        ScalableDimension: ecs:service:DesiredCount
+        ServiceNamespace: ecs
+
+    # Scaling Policy for ECS Service
+    ECSScalingPolicy:
+      Type: AWS::ApplicationAutoScaling::ScalingPolicy
+      Properties:
+        PolicyName: DirectusCPUScalingPolicy
+        PolicyType: TargetTrackingScaling
+        ScalingTargetId: !Ref ECSScalableTarget
+        TargetTrackingScalingPolicyConfiguration:
+          TargetValue: 70 # Target CPU utilization percentage
+          ScaleInCooldown: 300
+          ScaleOutCooldown: 60
+          PredefinedMetricSpecification:
+            PredefinedMetricType: ECSServiceAverageCPUUtilization
 
   Outputs:
     ALBEndpoint:
