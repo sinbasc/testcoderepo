@@ -1,344 +1,63 @@
-service: directus-fargate
+import asyncio
+import aiomysql
+import json
 
-frameworkVersion: '>=3.0.0'
+async def fetch_data():
+    try:
+        # Create connection pool
+        pool = await aiomysql.create_pool(
+            host='localhost',
+            port=3306,
+            user='your_username',
+            password='your_password',
+            db='your_database',
+            autocommit=True
+        )
+        
+        async with pool.acquire() as conn:
+            async with conn.cursor() as cur:
+                # Execute query for data
+                await cur.execute("SELECT id, name FROM market_sector")
+                
+                # Fetch all rows
+                rows = await cur.fetchall()
+                
+                # Convert to list of dictionaries
+                market_sectors = [{"id": row[0], "name": row[1]} for row in rows]
+                
+                # Get total count of records in table
+                await cur.execute("SELECT COUNT(*) FROM market_sector")
+                total_count = (await cur.fetchone())[0]
+                
+                # Create result dictionary
+                result = {
+                    "count": total_count,
+                    "total": len(rows)
+                }
+                
+                # Combine both outputs
+                final_output = {
+                    "marketSectors": market_sectors,
+                    "result": result
+                }
+                
+                # Convert to JSON
+                json_output = json.dumps(final_output, indent=2)
+                
+                return json_output
+                
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return None
+    finally:
+        pool.close()
+        await pool.wait_closed()
 
-provider:
-  name: aws
-  region: us-east-1 # Replace with your AWS region
-  stage: ${opt:stage, 'dev'}
-  deploymentBucket:
-    name: ${self:custom.artifactBucket} # Replace with your S3 bucket for Serverless artifacts
-  iam:
-    role:
-      statements:
-        - Effect: Allow
-          Action:
-            - 'ecs:*'
-            - 'ecr:GetAuthorizationToken'
-            - 'ecr:BatchGetImage'
-            - 'ecr:GetDownloadUrlForLayer'
-            - 'logs:CreateLogStream'
-            - 'logs:PutLogEvents'
-            - 'elasticloadbalancing:*'
-            - 'ec2:Describe*'
-            - 'iam:PassRole'
-            - 'application-autoscaling:*'
-            - 'cloudwatch:PutMetricData'
-            - 'cloudwatch:GetMetricStatistics'
-          Resource: '*'
+# Run the async function
+async def main():
+    json_data = await fetch_data()
+    if json_data:
+        print(json_data)
 
-custom:
-  artifactBucket: your-artifact-bucket-name # Replace with your S3 bucket name
-  vpc:
-    securityGroupIds:
-      - sg-xxxxxxxxxxxxxxxxx # Replace with your security group ID
-    subnetIds:
-      - subnet-xxxxxxxxxxxxxxxxx # Private subnet 1
-      - subnet-xxxxxxxxxxxxxxxxx # Private subnet 2
-  publicSubnetIds:
-    - subnet-yyyyyyyyyyyyyyyyy # Public subnet 1
-    - subnet-yyyyyyyyyyyyyyyyy # Public subnet 2
-  accountId: 'your-account-id' # Replace with your AWS account ID
-  albCertificateArn: 'arn:aws:acm:us-east-1:your-account-id:certificate/zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz' # Replace with your ACM certificate ARN
-  directus:
-    environment:
-      # Directus environment variables (adjust as needed)
-      DB_CLIENT: 'pg' # Example: PostgreSQL
-      DB_HOST: 'your-rds-endpoint' # Replace with your database endpoint
-      DB_PORT: '5432'
-      DB_DATABASE: 'directus'
-      DB_USER: 'directus'
-      DB_PASSWORD: 'your-db-password' # Use Secrets Manager in production
-      ADMIN_EMAIL: 'admin@example.com'
-      ADMIN_PASSWORD: 'your-admin-password' # Use Secrets Manager in production
-      SECRET: 'your-random-secret' # Replace with a secure random value
-      WEBSOCKETS_ENABLED: 'true'
-
-resources:
-  Resources:
-    # ECS Cluster
-    ECSCluster:
-      Type: AWS::ECS::Cluster
-      Properties:
-        ClusterName: directus-cluster-${self:provider.stage}
-
-    # ECS Task Definition
-    DirectusTaskDefinition:
-      Type: AWS::ECS::TaskDefinition
-      Properties:
-        Family: directus-task
-        Cpu: '256'
-        Memory: '512'
-        NetworkMode: awsvpc
-        RequiresCompatibilities:
-          - FARGATE
-        ExecutionRoleArn: !Ref ECSTaskExecutionRole
-        TaskRoleArn: !Ref ECSTaskRole
-        ContainerDefinitions:
-          - Name: directus
-            Image: ${self:custom.accountId}.dkr.ecr.${self:provider.region}.amazonaws.com/directus:latest # Replace 'directus' with your ECR repository name
-            Essential: true
-            PortMappings:
-              - ContainerPort: 8055
-                HostPort: 8055
-                Protocol: tcp
-            Environment:
-              - Name: DB_CLIENT
-                Value: ${self:custom.directus.environment.DB_CLIENT}
-              - Name: DB_HOST
-                Value: ${self:custom.directus.environment.DB_HOST}
-              - Name: DB_PORT
-                Value: ${self:custom.directus.environment.DB_PORT}
-              - Name: DB_DATABASE
-                Value: ${self:custom.directus.environment.DB_DATABASE}
-              - Name: DB_USER
-                Value: ${self:custom.directus.environment.DB_USER}
-              - Name: DB_PASSWORD
-                Value: ${self:custom.directus.environment.DB_PASSWORD}
-              - Name: ADMIN_EMAIL
-                Value: ${self:custom.directus.environment.ADMIN_EMAIL}
-              - Name: ADMIN_PASSWORD
-                Value: ${self:custom.directus.environment.ADMIN_PASSWORD}
-              - Name: SECRET
-                Value: ${self:custom.directus.environment.SECRET}
-              - Name: WEBSOCKETS_ENABLED
-                Value: ${self:custom.directus.environment.WEBSOCKETS_ENABLED}
-            LogConfiguration:
-              LogDriver: awslogs
-              Options:
-                awslogs-group: !Ref DirectusLogGroup
-                awslogs-region: ${self:provider.region}
-                awslogs-stream-prefix: directus
-
-    # ECS Service
-    DirectusService:
-      Type: AWS::ECS::Service
-      Properties:
-        Cluster: !Ref ECSCluster
-        ServiceName: directus-service-${self:provider.stage}
-        TaskDefinition: !Ref DirectusTaskDefinition
-        DesiredCount: 1
-        LaunchType: FARGATE
-        NetworkConfiguration:
-          AwsvpcConfiguration:
-            AssignPublicIp: DISABLED
-            Subnets: ${self:custom.vpc.subnetIds}
-            SecurityGroups:
-              - !Ref FargateSecurityGroup
-        LoadBalancers:
-          - ContainerName: directus
-            ContainerPort: 8055
-            TargetGroupArn: !Ref DirectusTargetGroup
-        DeploymentConfiguration:
-          MaximumPercent: 200
-          MinimumHealthyPercent: 50
-
-    # Security Group for ALB
-    ALBSecurityGroup:
-      Type: AWS::EC2::SecurityGroup
-      Properties:
-        GroupDescription: Security group for Directus ALB
-        VpcId: vpc-xxxxxxxxxxxxxxxxx # Replace with your VPC ID
-        SecurityGroupIngress:
-          - IpProtocol: tcp
-            FromPort: 80
-            ToPort: 80
-            CidrIp: 0.0.0.0/0
-          - IpProtocol: tcp
-            FromPort: 443
-            ToPort: 443
-            CidrIp: 0.0.0.0/0
-        SecurityGroupEgress:
-          - IpProtocol: -1
-            FromPort: 0
-            ToPort: 0
-            CidrIp: 0.0.0.0/0
-
-    # Security Group for Fargate Tasks
-    FargateSecurityGroup:
-      Type: AWS::EC2::SecurityGroup
-      Properties:
-        GroupDescription: Security group for Directus Fargate tasks
-        VpcId: vpc-xxxxxxxxxxxxxxxxx # Replace with your VPC ID
-        SecurityGroupIngress:
-          - IpProtocol: tcp
-            FromPort: 8055
-            ToPort: 8055
-            SourceSecurityGroupId: !Ref ALBSecurityGroup
-        SecurityGroupEgress:
-          - IpProtocol: -1
-            FromPort: 0
-            ToPort: 0
-            CidrIp: 0.0.0.0/0
-
-    # Application Load Balancer
-    ApplicationLoadBalancer:
-      Type: AWS::ElasticLoadBalancingV2::LoadBalancer
-      Properties:
-        Subnets: ${self:custom.publicSubnetIds}
-        SecurityGroups:
-          - !Ref ALBSecurityGroup
-        Scheme: internet-facing
-        Type: application
-
-    # Target Group for Directus
-    DirectusTargetGroup:
-      Type: AWS::ElasticLoadBalancingV2::TargetGroup
-      Properties:
-        VpcId: vpc-xxxxxxxxxxxxxxxxx # Replace with your VPC ID
-        Port: 8055
-        Protocol: HTTP
-        TargetType: ip
-        HealthCheckPath: /server/ping
-        HealthCheckProtocol: HTTP
-        HealthyThresholdCount: 2
-        UnhealthyThresholdCount: 5
-        HealthCheckTimeoutSeconds: 5
-        HealthCheckIntervalSeconds: 30
-        Matcher:
-          HttpCode: '200'
-
-    # ALB Listener (HTTPS on port 443)
-    ALBListenerHTTPS:
-      Type: AWS::ElasticLoadBalancingV2::Listener
-      Properties:
-        LoadBalancerArn: !Ref ApplicationLoadBalancer
-        Port: 443
-        Protocol: HTTPS
-        Certificates:
-          - CertificateArn: ${self:custom.albCertificateArn}
-        DefaultActions:
-          - Type: fixed-response
-            FixedResponseConfig:
-              ContentType: text/plain
-              MessageBody: 'Not Found'
-              StatusCode: '404'
-
-    # ALB Listener (HTTP on port 80, redirect to HTTPS)
-    ALBListenerHTTP:
-      Type: AWS::ElasticLoadBalancingV2::Listener
-      Properties:
-        LoadBalancerArn: !Ref ApplicationLoadBalancer
-        Port: 80
-        Protocol: HTTP
-        DefaultActions:
-          - Type: redirect
-            RedirectConfig:
-              Protocol: HTTPS
-              Port: '443'
-              Host: '#{host}'
-              Path: '/#{path}'
-              Query: '#{query}'
-              StatusCode: HTTP_301
-
-    # ALB Listener Rule for / path (on HTTPS listener)
-    ALBListenerRule:
-      Type: AWS::ElasticLoadBalancingV2::ListenerRule
-      Properties:
-        ListenerArn: !Ref ALBListenerHTTPS
-        Priority: 1
-        Conditions:
-          - Field: path-pattern
-            Values:
-              - '/'
-        Actions:
-          - Type: forward
-            TargetGroupArn: !Ref DirectusTargetGroup
-
-    # CloudWatch Log Group
-    DirectusLogGroup:
-      Type: AWS::Logs::LogGroup
-      Properties:
-        LogGroupName: /ecs/directus
-        RetentionInDays: 7
-
-    # ECS Task Execution Role
-    ECSTaskExecutionRole:
-      Type: AWS::IAM::Role
-      Properties:
-        AssumeRolePolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-            - Effect: Allow
-              Principal:
-                Service: ecs-tasks.amazonaws.com
-              Action: sts:AssumeRole
-        ManagedPolicyArns:
-          - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
-
-    # ECS Task Role
-    ECSTaskRole:
-      Type: AWS::IAM::Role
-      Properties:
-        AssumeRolePolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-            - Effect: Allow
-              Principal:
-                Service: ecs-tasks.amazonaws.com
-              Action: sts:AssumeRole
-        Policies:
-          - PolicyName: DirectusTaskPolicy
-            PolicyDocument:
-              Version: '2012-10-17'
-              Statement:
-                - Effect: Allow
-                  Action:
-                    - 'logs:CreateLogStream'
-                    - 'logs:PutLogEvents'
-                  Resource: !GetAtt DirectusLogGroup.Arn
-
-    # IAM Role for Auto-Scaling
-    ECSAutoScalingRole:
-      Type: AWS::IAM::Role
-      Properties:
-        AssumeRolePolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-            - Effect: Allow
-              Principal:
-                Service: application-autoscaling.amazonaws.com
-              Action: sts:AssumeRole
-        Policies:
-          - PolicyName: ECSAutoScalingPolicy
-            PolicyDocument:
-              Version: '2012-10-17'
-              Statement:
-                - Effect: Allow
-                  Action:
-                    - 'ecs:DescribeServices'
-                    - 'ecs:UpdateService'
-                    - 'cloudwatch:PutMetricAlarm'
-                    - 'cloudwatch:DescribeAlarms'
-                    - 'cloudwatch:DeleteAlarms'
-                  Resource: '*'
-
-    # Scalable Target for ECS Service
-    ECSScalableTarget:
-      Type: AWS::ApplicationAutoScaling::ScalableTarget
-      Properties:
-        MaxCapacity: 4 # Maximum number of tasks
-        MinCapacity: 1 # Minimum number of tasks
-        ResourceId: !Sub 'service/${ECSCluster}/${DirectusService.Name}'
-        RoleARN: !GetAtt ECSAutoScalingRole.Arn
-        ScalableDimension: ecs:service:DesiredCount
-        ServiceNamespace: ecs
-
-    # Scaling Policy for ECS Service
-    ECSScalingPolicy:
-      Type: AWS::ApplicationAutoScaling::ScalingPolicy
-      Properties:
-        PolicyName: DirectusCPUScalingPolicy
-        PolicyType: TargetTrackingScaling
-        ScalingTargetId: !Ref ECSScalableTarget
-        TargetTrackingScalingPolicyConfiguration:
-          TargetValue: 70 # Target CPU utilization percentage
-          ScaleInCooldown: 300
-          ScaleOutCooldown: 60
-          PredefinedMetricSpecification:
-            PredefinedMetricType: ECSServiceAverageCPUUtilization
-
-  Outputs:
-    ALBEndpoint:
-      Description: The DNS name of the ALB
-      Value: !GetAtt ApplicationLoadBalancer.DNSName
+if __name__ == "__main__":
+    asyncio.run(main())
