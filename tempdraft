@@ -1,63 +1,17 @@
-import asyncio
-import aiomysql
-import json
-
-async def fetch_data():
-    try:
-        # Create connection pool
-        pool = await aiomysql.create_pool(
-            host='localhost',
-            port=3306,
-            user='your_username',
-            password='your_password',
-            db='your_database',
-            autocommit=True
-        )
-        
-        async with pool.acquire() as conn:
-            async with conn.cursor() as cur:
-                # Execute query for data
-                await cur.execute("SELECT id, name FROM market_sector")
-                
-                # Fetch all rows
-                rows = await cur.fetchall()
-                
-                # Convert to list of dictionaries
-                market_sectors = [{"id": row[0], "name": row[1]} for row in rows]
-                
-                # Get total count of records in table
-                await cur.execute("SELECT COUNT(*) FROM market_sector")
-                total_count = (await cur.fetchone())[0]
-                
-                # Create result dictionary
-                result = {
-                    "count": total_count,
-                    "total": len(rows)
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::123456789012:root"
+            },
+            "Action": "sts:AssumeRole",
+            "Condition": {
+                "StringEquals": {
+                    "sts:ExternalId": "your-external-id"
                 }
-                
-                # Combine both outputs
-                final_output = {
-                    "marketSectors": market_sectors,
-                    "result": result
-                }
-                
-                # Convert to JSON
-                json_output = json.dumps(final_output, indent=2)
-                
-                return json_output
-                
-    except Exception as e:
-        print(f"Error: {str(e)}")
-        return None
-    finally:
-        pool.close()
-        await pool.wait_closed()
-
-# Run the async function
-async def main():
-    json_data = await fetch_data()
-    if json_data:
-        print(json_data)
-
-if __name__ == "__main__":
-    asyncio.run(main())
+            }
+        }
+    ]
+}
