@@ -1,17 +1,37 @@
+curl -X POST "http://localhost:9200/_aliases" -H 'Content-Type: application/json' -d'
 {
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Principal": {
-                "AWS": "arn:aws:iam::123456789012:root"
-            },
-            "Action": "sts:AssumeRole",
-            "Condition": {
-                "StringEquals": {
-                    "sts:ExternalId": "your-external-id"
-                }
-            }
-        }
-    ]
-}
+  "actions": [
+    {
+      "add": {
+        "index": "index1",
+        "alias": "my_alias"
+      }
+    },
+    {
+      "add": {
+        "index": "index2",
+        "alias": "my_alias"
+      }
+    }
+  ]
+}'
+
+
+
+curl -X POST "http://localhost:9200/_aliases" -H 'Content-Type: application/json' -d'
+{
+  "actions": [
+    {
+      "remove": {
+        "index": "old_index",
+        "alias": "my_alias"
+      }
+    },
+    {
+      "add": {
+        "index": "new_index",
+        "alias": "my_alias"
+      }
+    }
+  ]
+}'
