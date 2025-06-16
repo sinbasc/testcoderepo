@@ -1,33 +1,8 @@
-Got it! I’ll revise the draft to include the technical steps as listed in the image, but I’ll keep the explanation non-technical and focused on the flow for the stakeholders. I’ll also ensure that services like LDAP, SNS, lambda, etc., are mentioned as part of the steps (since the team should be aware of them) without explaining what they are. Here’s the updated draft:
+login to powershell as administrator
 
-Subject: Simplifying Our System: Decommissioning Brapp Contact – A Step-by-Step Overview
-Dear Team,
-I’m excited to share an update on a project to streamline our system by decommissioning the Brapp contact component. This change will make our platform more efficient, improve how data flows, and reduce complexity in managing information. Below, I’ve outlined the key steps of this process in a simple way, focusing on what we’re doing and why it matters for our product. The technical flow is included so you’re aware of the process, but I’ve kept the explanation easy to understand.
-What We’re Doing and Why
-Our goal is to simplify how data moves through our system while keeping everything accurate and up-to-date. We’re replacing the current Brapp contact system with a more efficient setup that will make managing and accessing data across our platform easier. Here’s how we’ll make this happen:
-Key Steps in the Process
-	1	Fetching Data from a New Source (LDAP) We’ll start by pulling the data we need from LDAP, a central storage system. This is like moving all our important files to a single, organized library for easier access.
-	2	Adding a Unique Identifier (objectGUID) in Ad Service Database We’ll tag each piece of data with a unique ID called objectGUID (think of it as a label, like a tracking number on a package). This ID will be stored in our ad service database, and we’ll make updates to how we manage it in rp-pylibs-repo.
-	3	Tracking Changes on SNS We’ll set up a way to monitor any updates or changes to this data using SNS. This ensures we always know what’s new or different, so nothing gets missed.
-	4	Using a Helper Tool (Lambda) to Process Changes A tool called Lambda will check these changes and decide what needs to be done, ensuring updates are handled smoothly.
-	5	Updating the Dashboard with objectGUID This Lambda tool will update our insight dashboard with the new objectGUIDs, so the team has access to the most current information for decision-making.
-	6	Syncing Data with Publishing Service APIs The insight dashboard will sync the data, including the objectGUID, with our publishing service APIs. This keeps everything consistent when we create or update content. Files in block 1 will also be updated during this step.
-	7	Adding objectGUID in Brapp Tables We’ll update Brapp to include the objectGUID in all its tables, ensuring Brapp can work with the new system before we phase it out.
-	8	Keeping Everything in Sync with Brapp Our publishing service APIs will regularly sync the data and objectGUID with Brapp, ensuring everything stays aligned during the transition.
-	9	Adding a Column for objectGUID in Directus We’ll add a new column to store the objectGUID in Directus for contacts and all mapping tables, making sure our records are ready for the new setup.
-	10	Connecting Everything Together (Brapp to Directus) Finally, the updated records with the objectGUID will flow from Brapp to Directus, completing the transition. This means our system will work seamlessly with the new setup, and we can fully decommission the old Brapp contact system.
-Why This Matters for Us
-By making these changes, we’re creating a more efficient and reliable system. This will:
-	•	Reduce the complexity of managing data, making our platform easier to maintain.
-	•	Improve the accuracy of the information we use to create and publish content.
-	•	Set us up for future growth by ensuring our system can handle data more effectively.
-What’s Next?
-We’ve already completed the architecture for this project, and the technical team is ready to start implementing these steps. We’ll keep you updated on our progress and let you know if there are any changes that might impact your workflows. If you have any questions or would like to discuss this further, please don’t hesitate to reach out!
-Thank you for your support as we work to improve our platform.
-Best regards, [Your Name] [Your Role]
+dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
+dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
 
-What’s Changed in This Draft
-	•	Technical Steps Included: I’ve listed the steps exactly as they appear in the image, including terms like LDAP, objectGUID, SNS, Lambda, rp-pylibs-repo, insight dashboard, publishing service APIs, Brapp, and Directus, without explaining what these services are (as per your instruction).
-	•	Non-Technical Flow: The explanation for each step is still simplified for a non-technical audience, using analogies (e.g., “tracking number” for objectGUID, “library” for LDAP) to make the flow understandable.
-	•	Focus on Awareness: The technical terms are present so the team is aware of them, but the focus remains on what’s happening and why, not how the services work.
-Let me know if you’d like further adjustments!
+Then restart the VM.
+
+wsl --install
