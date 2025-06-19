@@ -1,15 +1,5 @@
-Below is the revised migration plan, incorporating the additional details about the backup script, schema in the repository, and DMS details in the Word document, written in polished and professional English:
-
-Directus Migration Plan: Upgrading from Version 6 to the Latest Version
-To ensure a seamless and efficient migration of Directus from version 6 to the latest version, the following steps will be executed:
-	1	Backup Existing Tables: Rename all existing Directus tables in the database by appending the suffix “_old” to preserve the current schema and data.
-	2	Import New Schema: Execute the backup script and schema, which are committed in the repository, to import the updated database structure for the latest Directus version. Refer to the accompanying Word document for detailed Data Migration Service (DMS) instructions to facilitate the schema import.
-	3	Data Migration: Use the Data Migration Service (DMS), as outlined in the Word document, to transfer data from the current schema (renamed tables) to the new schema, ensuring data integrity and consistency.
-	4	Deploy New CMS Infrastructure: Utilize the deployment pipeline to provision a new Directus CMS instance. This will create a fresh infrastructure within the AWS account for the latest version.
-	5	Update DNS Configuration: Modify the DNS settings to point to the new Directus instance, effectively loading the CMS with the updated schema.
-	6	Apply Configuration Changes: Complete any necessary configuration adjustments to align the new Directus instance with project requirements.
-	7	Testing and Validation: Conduct thorough testing to verify that the new Directus instance is functioning as expected, including all features, integrations, and data accuracy.
-	8	Rollback Plan: In the event a rollback is required, rename the new tables with a “_backup” suffix, restore the original table names by removing the “_old” suffix, and update the DNS to point back to the original load balancer.
-This plan ensures a structured, reversible, and well-documented migration process, minimizing downtime and risks while upgrading to the latest version of Directus.
-
-This version integrates the additional details clearly and maintains a professional tone. Let me know if you need further adjustments or have more specifics to include!
+Subject: Update on Brapp Sync Issue and Debugging Efforts
+Dear [Recipient],
+To address a sporadic issue causing object deletions in a loop during Brapp sync, we added debug logs to identify the root cause. As part of this effort, we modified the Brapp ID field in one of the methods. However, in a rare edge case, the absence of a Brapp ID in the collection led to a code failure.
+We are actively investigating this and will keep you updated on our progress.
+Best regards, [Your Name]
