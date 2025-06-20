@@ -1,18 +1,1 @@
-{
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Python: Debug Main Handler",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/main.py",
-            "args": [],
-            "env": {
-                "ENV_VAR1": "value1",
-                "ENV_VAR2": "value2",
-                "AWS_REGION": "us-east-1"
-            },
-            "justMyCode": true
-        }
-    ]
-}
+For the BRAPP contact decommission project, I needed to thoroughly understand the contact workflow at the warehouse end. This was challenging due to the lack of documentation and my limited familiarity with the warehouse squad’s context. By leveraging my coordination and system understanding skills, I successfully gained a comprehensive grasp of the workflow.
