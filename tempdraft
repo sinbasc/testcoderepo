@@ -1,8 +1,2 @@
-Serverless migration
-Python upgrades
-Security vulnerabilities 
-Old Ratingsnow logic
-Microsite addition
-Ubuntu 22 from 20
-Code reviews
-
+awk '/CREATE TABLE/ {table=$3} /created_by/ {print table}' your_ddl_file.sql | sort -u > tables_with_created_by.txt
+awk '/CREATE TABLE/ {table=$3} /updated_by/ {print table}' your_ddl_file.sql | sort -u > tables_with_updated_by.txt
