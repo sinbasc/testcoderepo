@@ -1,33 +1,10 @@
-import re
+# Use the official Directus 11 image as the base
+FROM directus/directus:11.5.1
 
-def find_tables_with_columns(ddl_file, column_name):
-    with open(ddl_file, 'r') as file:
-        content = file.read()
-    # Split into CREATE TABLE blocks
-    table_blocks = re.split(r'CREATE TABLE\s+', content, flags=re.IGNORECASE)[1:]
-    matching_tables = []
-    
-    for block in table_blocks:
-        # Extract table name (schema.table_name)
-        table_name_match = re.match(r'"[^"]+"\."[^"]+"', block, re.IGNORECASE)
-        if table_name_match:
-            table_name = table_name_match.group(0)
-            # Check if column_name exists in this block
-            if re.search(rf'\b{column_name}\b', block, re.IGNORECASE):
-                matching_tables.append(table_name)
-    
-    return matching_tables
+# Switch to root user to enable corepack
+USER root
+RUN corepack enable
 
-# Usage
-ddl_file = 'your_ddl_file.sql'
-created_by_tables = find_tables_with_columns(ddl_file, 'created_by')
-updated_by_tables = find_tables_with_columns(ddl_file, 'updated_by')
-
-# Print and save results
-with open('tables_with_created_by.txt', 'w') as f:
-    f.write('\n'.join(sorted(created_by_tables)))
-with open('tables_with_updated_by.txt', 'w') as f:
-    f.write('\n'.join(sorted(updated_by_tables)))
-
-print(f"Tables with created_by ({len(created_by_tables)}):", sorted(created_by_tables))
-print(f"Tables with updated_by ({len(updated_by_tables)}):", sorted(updated_by_tables))
+# Switch back to node user for installing extensions
+USER node
+RUN pnpm install directus-extension-package-name
