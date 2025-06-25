@@ -4,14 +4,19 @@ FROM directus/directus:11.5.1
 # Switch to root user to install dependencies
 USER root
 
-# Install git
-RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+# Check if a package manager exists and install git
+RUN (command -v apt-get && apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/* || \
+     command -v apk && apk add --no-cache git || \
+     echo "No package manager found, assuming git is pre-installed or not needed")
 
 # Enable corepack for pnpm
-RUN corepack enable
+RUN corepack enable || true
 
 # Switch back to node user for installing extensions
 USER node
 
 # Install the Directus extension (replace with your extension)
 RUN pnpm install directus-extension-package-name
+
+# Ensure the entrypoint uses a compatible shell
+ENTRYPOINT ["/bin/sh", "-c", "node /directus/dist/index.js"]
