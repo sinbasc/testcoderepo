@@ -1,6 +1,5 @@
-Subject: Follow-Up on Cluster Provisioning Discussion
+Subject: Recommendation on Cluster Configuration
 Dear Mayur,
-Thank you for our discussion yesterday regarding the cluster provisioning strategy. Based on our conversation, I recommend initiating with a higher-capacity cluster, aligned with the production environment’s specifications. This approach will effectively support the four non-production environments we plan to maintain.
-I’ve consulted with Rugved on the cost estimates, and he has finalized the details. He will update the relevant ticket with this information. Kindly review and provide your approval, after which we can proceed with the cluster setup.
-Please let me know if you need any additional details.
+Thank you for our recent discussion regarding the cluster configuration strategy. Following our conversation, I connected with Rugved to review the cost implications. Based on his analysis and our comparison, I recommend proceeding with a cluster configuration that mirrors the production environment’s specifications. This approach will ensure optimal performance for the four non-production environments we plan to support.
+Rugved has finalized the cost details and will update the relevant ticket. Kindly review and provide your approval to move forward with the cluster setup. Please let me know if you require further information.
 Best regards, [Your Name]
