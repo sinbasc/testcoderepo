@@ -1,22 +1,6 @@
-# Use the official Directus 11 image as the base
-FROM directus/directus:11.5.1
-
-# Switch to root user to install dependencies
-USER root
-
-# Check if a package manager exists and install git
-RUN (command -v apt-get && apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/* || \
-     command -v apk && apk add --no-cache git || \
-     echo "No package manager found, assuming git is pre-installed or not needed")
-
-# Enable corepack for pnpm
-RUN corepack enable || true
-
-# Switch back to node user for installing extensions
-USER node
-
-# Install the Directus extension (replace with your extension)
-RUN pnpm install directus-extension-package-name
-
-# Ensure the entrypoint uses a compatible shell
-ENTRYPOINT ["/bin/sh", "-c", "node /directus/dist/index.js"]
+Subject: Follow-Up on Cluster Provisioning Discussion
+Dear Mayur,
+Thank you for our discussion yesterday regarding the cluster provisioning strategy. Based on our conversation, I recommend initiating with a higher-capacity cluster, aligned with the production environment’s specifications. This approach will effectively support the four non-production environments we plan to maintain.
+I’ve consulted with Rugved on the cost estimates, and he has finalized the details. He will update the relevant ticket with this information. Kindly review and provide your approval, after which we can proceed with the cluster setup.
+Please let me know if you need any additional details.
+Best regards, [Your Name]
