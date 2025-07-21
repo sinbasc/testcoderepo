@@ -1,5 +1,19 @@
-Subject: Recommendation on Cluster Configuration
-Dear Mayur,
-Thank you for our recent discussion regarding the cluster configuration strategy. Following our conversation, I connected with Rugved to review the cost implications. Based on his analysis and our comparison, I recommend proceeding with a cluster configuration that mirrors the production environment’s specifications. This approach will ensure optimal performance for the four non-production environments we plan to support.
-Rugved has finalized the cost details and will update the relevant ticket. Kindly review and provide your approval to move forward with the cluster setup. Please let me know if you require further information.
-Best regards, [Your Name]
+ALTER SESSION SET SQL_TRACE = TRUE;
+-- Run your MERGE statement
+ALTER SESSION SET SQL_TRACE = FALSE;
+
+BEGIN
+    MERGE INTO employee_rating er
+    USING employee e
+    ON (e.employee_id = er.employee_id)
+    WHEN MATCHED THEN
+    UPDATE SET er.network_login = e.login;
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE(DBMS_UTILITY.FORMAT_ERROR_BACKTRACE);
+        RAISE;
+END;
+
+SELECT name, type, line, text
+FROM user_source
+WHERE UPPER(text) LIKE '%20000%';
