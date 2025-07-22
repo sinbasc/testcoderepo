@@ -1,19 +1,13 @@
-ALTER SESSION SET SQL_TRACE = TRUE;
--- Run your MERGE statement
-ALTER SESSION SET SQL_TRACE = FALSE;
+Subject: Recognition of Tushar’s Contributions and Efforts
+Dear Team,
+I would like to highlight Tushar’s outstanding efforts and contributions to our projects as a Senior Software Engineer. Below are five key points that elaborate on his dedicated work:
+	1	Directus CMS Upgrade POC and Implementation: Tushar worked on the Proof of Concept (POC) for upgrading our Directus CMS. Following the successful POC, he contributed to the full implementation phase, helping ensure a smooth upgrade that enhanced our content management capabilities.
+	2	End-to-End Non-Production Environment Development: He has actively worked on developing and configuring the end-to-end non-production environment, providing valuable inputs into the architecture and integrating various components to create a reliable testing and staging setup. Thanks to his efforts, this initiative is in good shape, significantly improving our development workflow, while he continued to fulfill his other ongoing commitments.
+	3	Business As Usual (BAU) Activities: Tushar has effectively managed BAU tasks, including addressing security vulnerability tickets by identifying root causes and implementing robust fixes, as well as handling any support tickets that arose. His attention to detail in these routine responsibilities has strengthened system defenses, ensured compliance, and maintained operational stability.
+	4	Consistent On-Time Delivery: Throughout his involvement in these initiatives, Tushar has consistently ensured on-time delivery of milestones and deliverables. His strong project management skills and ability to prioritize tasks have kept projects on track, even under tight deadlines.
+	5	Guidance, Mentorship, and Increased Participation: In the absence of the team lead, Tushar stepped up to guide junior team members and provide support, fostering skill development among peers, promoting knowledge sharing, and maintaining team productivity during transitional periods. Additionally, his participation in overall planning and grooming calls has now increased, contributing to more effective team collaboration and decision-making.
+Tushar’s proactive approach and technical expertise have been invaluable to our success. I commend him for his hard work and look forward to his continued contributions.
+Best regards, [Your Name] [Your Position]
 
-BEGIN
-    MERGE INTO employee_rating er
-    USING employee e
-    ON (e.employee_id = er.employee_id)
-    WHEN MATCHED THEN
-    UPDATE SET er.network_login = e.login;
-EXCEPTION
-    WHEN OTHERS THEN
-        DBMS_OUTPUT.PUT_LINE(DBMS_UTILITY.FORMAT_ERROR_BACKTRACE);
-        RAISE;
-END;
 
-SELECT name, type, line, text
-FROM user_source
-WHERE UPPER(text) LIKE '%20000%';
+
