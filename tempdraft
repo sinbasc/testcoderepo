@@ -1,7 +1,22 @@
-Subject: Next Steps for Directus 11 Licensing and Migration
-Dear Patrick,
-I hope you’re doing well. I am reaching out from the delivery team regarding our use of Directus CMS, which enables our marketing and publishing teams to manage website data. We are currently using Directus version 6, which has known security vulnerabilities. To address this, we plan to migrate to the latest version, Directus 11, for a self-hosted deployment to ensure a secure and up-to-date system.
-After reviewing the Directus website, I noticed that the licensing costs for organizations, particularly those exceeding the $5M total finances threshold, are not listed. The self-hosted pricing page recommends contacting their team for commercial licensing details (https://directus.io/pricing/self-hosted).
-Could you please outline the next steps for purchasing the appropriate license for Directus 11? Kindly include details on pricing, any required documentation, and the overall process to facilitate our migration and ensure compliance.
-Thank you for your assistance. Please let me know if you need any additional information from my side to move this forward.
-Best regards, [Your Name] [Your Position] Delivery Team [Your Organization] [Your Contact Information]
+FROM directus/directus:latest
+
+USER root
+
+# Update Alpine packages to fix OS-level vulnerabilities
+RUN apk update && apk upgrade --no-cache
+
+# If needing to update Node to a newer patch (tricky; may require manual installation)
+# Example: Install Node via nvm (not recommended for production, but possible)
+RUN apk add --no-cache curl bash \
+    && curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash \
+    && . /root/.nvm/nvm.sh \
+    && nvm install 20.15  # Or desired version \
+    && nvm use 20.15 \
+    && nvm alias default 20.15 \
+    && ln -sf /root/.nvm/versions/node/v20.15.1/bin/node /usr/local/bin/node \
+    && ln -sf /root/.nvm/versions/node/v20.15.1/bin/npm /usr/local/bin/npm \
+    && ln -sf /root/.nvm/versions/node/v20.15.1/bin/pnpm /usr/local/bin/pnpm
+
+USER node  # Switch back to non-root if needed
+
+CMD :; (node bin/directus.js database migrate:latest || true) && node bin/directus.js
