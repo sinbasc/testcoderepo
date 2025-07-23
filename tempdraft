@@ -20,3 +20,7 @@ RUN apk add --no-cache curl bash \
 USER node  # Switch back to non-root if needed
 
 CMD :; (node bin/directus.js database migrate:latest || true) && node bin/directus.js
+
+RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/main" > /etc/apk/repositories && \
+    echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories
+RUN apk update && apk upgrade --no-cache
