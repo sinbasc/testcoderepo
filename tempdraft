@@ -24,3 +24,9 @@ CMD :; (node bin/directus.js database migrate:latest || true) && node bin/direct
 RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/main" > /etc/apk/repositories && \
     echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories
 RUN apk update && apk upgrade --no-cache
+
+Dear Mayur,
+I hope this email finds you well. We are encountering an issue during our CMS upgrade process. Recently, on our non-production environment, we upgraded the image to address security vulnerabilities. Following this upgrade, upon loading the Directus login screen, we received a popup notification regarding licensing requirements for organizations with annual revenue exceeding USD 5 million. This is the first time we have come across this popup.
+We are using Directus in self-hosted mode, rather than their cloud service. Upon further investigation, I was unable to locate any information about licensing costs for self-hosted instances on their website. Here is the relevant link for reference: https://directus.io/pricing/self-hosted.
+Could you please advise on the next steps? I’m unsure whom to contact regarding licensing inquiries.
+Thank you for your assistance.
