@@ -2,22 +2,22 @@ FROM directus/directus:latest
 
 USER root
 
-# Update Alpine packages to fix OS-level vulnerabilities
+# Update OS packages
 RUN apk update && apk upgrade --no-cache
 
-# If needing to update Node to a newer patch (tricky; may require manual installation)
-# Example: Install Node via nvm (not recommended for production, but possible)
+# Install NVM and desired Node version
 RUN apk add --no-cache curl bash \
     && curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash \
     && . /root/.nvm/nvm.sh \
-    && nvm install 20.15  # Or desired version \
-    && nvm use 20.15 \
-    && nvm alias default 20.15 \
-    && ln -sf /root/.nvm/versions/node/v20.15.1/bin/node /usr/local/bin/node \
-    && ln -sf /root/.nvm/versions/node/v20.15.1/bin/npm /usr/local/bin/npm \
-    && ln -sf /root/.nvm/versions/node/v20.15.1/bin/pnpm /usr/local/bin/pnpm
+    && nvm install 22.17.1 \
+    && nvm use 22.17.1 \
+    && nvm alias default 22.17.1 \
+    && ln -sf /root/.nvm/versions/node/v22.17.1/bin/node /usr/local/bin/node \
+    && ln -sf /root/.nvm/versions/node/v22.17.1/bin/npm /usr/local/bin/npm \
+    && ln -sf /root/.nvm/versions/node/v22.17.1/bin/pnpm /usr/local/bin/pnpm \
+    && node -v  # For build-time verification
 
-USER node  # Switch back to non-root if needed
+USER node  # Switch back
 
 CMD :; (node bin/directus.js database migrate:latest || true) && node bin/directus.js
 
