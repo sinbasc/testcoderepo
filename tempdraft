@@ -1,32 +1,14 @@
-FROM directus/directus:latest
-
-USER root
-
-# Update OS packages
-RUN apk update && apk upgrade --no-cache
-
-# Install NVM and desired Node version
-RUN apk add --no-cache curl bash \
-    && curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash \
-    && . /root/.nvm/nvm.sh \
-    && nvm install 22.17.1 \
-    && nvm use 22.17.1 \
-    && nvm alias default 22.17.1 \
-    && ln -sf /root/.nvm/versions/node/v22.17.1/bin/node /usr/local/bin/node \
-    && ln -sf /root/.nvm/versions/node/v22.17.1/bin/npm /usr/local/bin/npm \
-    && ln -sf /root/.nvm/versions/node/v22.17.1/bin/pnpm /usr/local/bin/pnpm \
-    && node -v  # For build-time verification
-
-USER node  # Switch back
-
-CMD :; (node bin/directus.js database migrate:latest || true) && node bin/directus.js
-
-RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/main" > /etc/apk/repositories && \
-    echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories
-RUN apk update && apk upgrade --no-cache
-
-Dear Mayur,
-I hope this email finds you well. We are encountering an issue during our CMS upgrade process. Recently, on our non-production environment, we upgraded the image to address security vulnerabilities. Following this upgrade, upon loading the Directus login screen, we received a popup notification regarding licensing requirements for organizations with annual revenue exceeding USD 5 million. This is the first time we have come across this popup.
-We are using Directus in self-hosted mode, rather than their cloud service. Upon further investigation, I was unable to locate any information about licensing costs for self-hosted instances on their website. Here is the relevant link for reference: https://directus.io/pricing/self-hosted.
-Could you please advise on the next steps? I’m unsure whom to contact regarding licensing inquiries.
-Thank you for your assistance.
+Subject: Persistent Security Vulnerabilities in Node Versions Despite Upgrades
+Dear Team,
+I am writing to highlight ongoing issues with security vulnerabilities in Node.js versions as reported by Wiz, even after attempting upgrades to the latest images. This pattern is repetitive and consuming significant developer time, impacting our productivity.
+For Directus:
+	•	An issue was opened on June 10th to upgrade from version 11.6 to 11.8.
+	•	Since Monday, July 21st, we have been working to upgrade to the latest version, 11.9.3.
+	•	However, upon deployment to AWS, the image retains an older Node version, which Wiz continues to flag for vulnerabilities.
+For Node.js:
+	•	A critical issue was raised on June 22nd for version 20.19.3, with the fix (20.19.4) unavailable in the ECR public gallery.
+	•	We upgraded to 22.15, but this was also marked vulnerable, with the fix (22.17) unavailable in the latest Node 22 images on ECR.
+	•	The recommended version is available on DockerHub (the vendor’s latest), and we plan to use it to resolve the vulnerability. Note that our current ECR images are Lambda-compatible, but DockerHub images will require additional tuning for our use case. Currently, images are being pulled from ECR, where the latest fixed versions from vendors are not yet available.
+These recurring challenges with unavailable fixed versions in ECR are delaying resolutions and diverting substantial developer effort from core tasks. I recommend exploring alternatives, such as expediting ECR updates or standardizing on DockerHub with pre-tuned images, to mitigate this in the future. While this is a good long-term solution, it represents a significant activity that would require thorough grooming and substantial development efforts to implement effectively.
+Please let me know if you need further details or if we can discuss potential solutions.
+Best regards, [Your Name] [Your Position] [Your Contact Information]
