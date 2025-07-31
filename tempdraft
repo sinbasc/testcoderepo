@@ -1,9 +1,7 @@
-Subject: Recommendation to Prioritize Event-Based Solution for Employee Table Decommissioning
-Dear Team,
-Following our recent discussions on the brapp migration, I want to emphasize why we should prioritize the event-based solution for the employee table now, rather than relying solely on the lift-and-shift to Data Hub. While lift-and-shift addresses some immediate concerns, it falls short in several key areas that could impact our long-term efficiency. Here are the precise points supporting immediate action:
-	1	Lift and Shift Would Only Fix Today’s Issues and Bad Design Still Remains: The lift-and-shift approach merely relocates the current setup without addressing the underlying poor design of brapp. This means structural flaws and inefficiencies will persist in Data Hub, potentially leading to recurring problems down the line and hindering our broader decommissioning efforts.
-	2	The Data Already Inserted in brapp from UI Today Will Still Remain: Even after the shift, any messy or incorrect data entered via the brapp UI will carry over to Data Hub. Without the event-based solution to clean and synchronize properly, this legacy data could continue to cause inconsistencies in downstream systems like the delivery module.
-	3	Currently the Processes and Code That Push Data in Employee Is Older Code and Breaks - This Is Pythia-2 Repo. This Would Remain and Would Persist Future Sync Issues: The outdated code in the Pythia-2 repository, which handles data pushes to the employee table, is prone to failures and won’t be resolved by lift-and-shift. Delaying modernization means these brittle processes will continue, risking ongoing synchronization issues with upstream systems like Insight and Active Directory.
-	4	Delaying the Plan Would Mean the Tickets Are in Groomed State for Long and Would Require Regroom and Time Could Be Lost for That: Our existing tickets for the event-based solution are already groomed and ready. Postponing them could lead to outdated grooming, necessitating rework and wasting valuable time—especially if team knowledge or priorities shift in the interim.
-I suggest we move forward with a minimal viable implementation to capitalize on the current momentum and avoid these risks. Let’s schedule a quick sync to align on next steps.
-Best regards, [Your Name] [Your Position]
+Cookie-Related Issues Status Update
+	•	2 bugs open with Development team:
+	◦	One is a CSS-related issue.
+	◦	The other involves OneTrust blocking other third-party cookies; we are currently reviewing the configuration.
+	•	2 bugs awaiting QA verification.
+	•	1 bug requiring confirmation from the Product team.
+The open issues with the Development team involve configuration changes in OneTrust, which require exploration of the OneTrust admin site. Following this, we will demo the changes to the Legal team, and upon their approval, we will proceed with the release.
