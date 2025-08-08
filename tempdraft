@@ -1,6 +1,2 @@
-We encountered an internal server error (HTTP 500) due to a database connectivity issue in the “Ratings Now dispatcher,” which is responsible for updating the subscription table. Although the database update was actually successful, this error caused the Python function to register a database update failure.
-Prior to the error, the “ratings now” file had been successfully generated and uploaded to the S3 bucket.
-This error triggered a corresponding Splunk alert, which prompted us to investigate the issue.
-Due to the perceived database update failure, the Lambda function was retried.
-Between the occurrence of the internal server error and the Lambda retry, there were no new updates, leading to the generation of a blank incremental file.
-The blank file was produced because the cutoff time had already been processed in the previous run, and it overwrote the existing file in the S3 bucket.
+	1	This issue did not occur earlier because the database is part of a shared cluster, and at that specific point in time, the overall load on the database was unusually high due to concurrent activities, which had not been the case previously. From reviewing online resources, another common factor could be sudden traffic bursts or long-running queries that cause connections to accumulate unexpectedly.
+	2	Connection pooling will maintain a fixed pool of reusable database connections, ensuring less load on the database by limiting new connection creations despite our system’s aggressive calls. Additionally, it prevents overload by capping the maximum active connections and efficiently managing resources during peaks, reducing latency through connection reuse.
