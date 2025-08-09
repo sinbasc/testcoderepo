@@ -1,5 +1,5 @@
-Thank you for your follow-up questions. I’ll address them below in sequence.
-	1	This issue hadn’t surfaced earlier because our database operates within a shared cluster environment, where the load was typically manageable. What changed was an unusually high spike in concurrent activities at that specific time, pushing the number of connections beyond the available capacity—something that hadn’t occurred before.
-	2	Connection pooling will create a managed set of reusable database connections that our system can draw from, rather than opening new ones for every request. This reduces the overall strain on the database, especially given our system’s frequent and intensive calls, by capping the maximum active connections and reusing existing ones. In the future, it should prevent overloads by handling peak loads more efficiently, minimizing latency and avoiding the risk of exceeding connection limits.
-
-Does this sound a fit for reply?
+Hi Mayur,
+This alert was triggered due to an error from the external PRH APIs while our application was attempting to add a deal. The error message indicated that the deal already exists.
+We verified this by checking the PRH API via Postman, which confirmed that the deal is indeed present. This suggests the deal was added manually in the PRH application, causing our synchronization process to fail.
+As a reminder, we have previously communicated to users that deals and mappings should not be added manually in the PRH application, as this can disrupt our system’s functionality.
+I have reached out to the product team to inquire further about this issue.
