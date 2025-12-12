@@ -1,0 +1,21 @@
+1
+00:00:01,000 --> 00:00:04,000
+Hello, how are you?
+
+2
+00:00:05,000 --> 00:00:07,000
+I'm good, thanks!
+
+3
+00:00:08,500 --> 00:00:12,300
+This is the second subtitle block,
+showing multiple lines.
+
+4
+00:00:13,000 --> 00:00:16,500
+[Music playing softly in background]
+
+5
+00:00:17,200 --> 00:00:20,800
+And this one uses some
+<i>basic formatting</i>.
